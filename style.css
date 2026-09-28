@@ -66,7 +66,7 @@ main{flex:1;min-height:0;position:relative}
 /* ---------- タイトル ---------- */
 #screen-title{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1.1rem}
 .t-sub{margin:0;color:var(--kin);font-size:clamp(1rem,2.2vw,1.5rem);letter-spacing:.25em;font-weight:700}
-.t-title{margin:0;font-family:var(--mincho);font-weight:800;font-size:clamp(2rem,6.4vw,6rem);word-break:keep-all;
+.t-title{margin:0;font-family:var(--mincho);font-weight:800;font-size:clamp(2.6rem,9vw,7rem);
   line-height:1.1;letter-spacing:.08em;text-shadow:0 5px 0 rgba(0,0,0,.55)}
 .shinai{width:min(82vw,760px);height:auto;filter:drop-shadow(0 4px 0 rgba(0,0,0,.5));
   animation:draw 1s cubic-bezier(.2,.8,.2,1) both}
@@ -87,8 +87,6 @@ main{flex:1;min-height:0;position:relative}
 .plaque::before{content:"";position:absolute;top:.5rem;left:50%;width:.55rem;height:.55rem;
   border-radius:50%;background:var(--ai-deep);transform:translateX(-50%)}
 .plaque.final{color:var(--shu)}
-.plaque.long{font-size:clamp(1.2rem,2.8vw,2.3rem)}
-.t-title .t-top{display:block;font-size:.62em;letter-spacing:.3em;margin-bottom:.15em}
 .plaque.enter{animation:swing .6s ease-out}
 @keyframes swing{0%{transform:rotate(-8deg);transform-origin:top center}60%{transform:rotate(3deg)}100%{transform:rotate(0)}}
 
@@ -109,7 +107,7 @@ main{flex:1;min-height:0;position:relative}
 .timebar i{display:block;height:100%;background:var(--kin);transform-origin:left center}
 .timebar.warn i{background:var(--shu)}
 
-.answers{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(min-content,1fr);gap:clamp(.5rem,1.4vw,1rem);flex:1 0 auto;min-height:5rem;padding-top:.6rem}
+.answers{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(0,1fr);gap:clamp(.5rem,1.4vw,1rem);flex:1;min-height:5rem;padding-top:.6rem}
 .ans{position:relative;display:flex;align-items:center;gap:.8rem;border-radius:14px;color:#fff;
   padding:clamp(.6rem,1.6vw,1.2rem) clamp(.8rem,2vw,1.4rem);font-weight:800;
   font-size:clamp(1.2rem,3.1vw,2.5rem);line-height:1.3;min-height:2.2em;
@@ -272,24 +270,6 @@ dialog .form-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 #toast.show{transform:translate(-50%,0);visibility:visible}
 .cf{position:fixed;top:-24px;width:10px;height:16px;z-index:60;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(112vh) rotate(760deg)}}
-
-
-/* ---------- 音楽クイズ ---------- */
-.music{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;background:rgba(227,179,65,.1);
-  border:2px solid rgba(227,179,65,.45);border-radius:12px;padding:.5rem .9rem}
-.music-label{font-weight:900;color:var(--kin);font-size:clamp(1rem,2vw,1.4rem)}
-.eq{display:flex;align-items:flex-end;gap:4px;height:2.2rem}
-.eq i{display:block;width:7px;height:25%;background:var(--kin);border-radius:2px}
-.music.playing .eq i{animation:eq .8s ease-in-out infinite}
-.music.playing .eq i:nth-child(2){animation-delay:-.2s}.music.playing .eq i:nth-child(3){animation-delay:-.45s}
-.music.playing .eq i:nth-child(4){animation-delay:-.1s}.music.playing .eq i:nth-child(5){animation-delay:-.6s}
-.music.playing .eq i:nth-child(6){animation-delay:-.3s}.music.playing .eq i:nth-child(7){animation-delay:-.5s}
-@keyframes eq{0%,100%{height:20%}50%{height:100%}}
-.tag.audio{background:var(--kin);color:var(--sumi);font-weight:800}
-.memo{display:block;font-size:.8rem;opacity:.6;overflow:hidden;text-overflow:ellipsis}
-.audio-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
-.audio-name{font-weight:800;flex:1 1 12rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hint{margin:0;font-size:.85rem;opacity:.75}
 
 /* ---------- 小さい画面 ---------- */
 @media (max-width:760px){

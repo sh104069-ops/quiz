@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0c1733">
-<title>致道館　レクリエーションクイズ大会</title>
+<title>剣道合宿 クイズ大会</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="topbar">
-  <div class="brand"><span aria-hidden="true">⚔️</span><span id="brandTitle">致道館　レクリエーションクイズ大会</span></div>
+  <div class="brand"><span aria-hidden="true">⚔️</span><span id="brandTitle">剣道合宿 クイズ大会</span></div>
   <nav class="nav" aria-label="画面切りかえ">
     <button type="button" data-go="title">タイトル</button>
     <button type="button" data-go="question">問題</button>
@@ -62,11 +62,6 @@
           <span class="q-timer" id="timerNum" aria-live="off"></span>
         </div>
         <div class="q-text" id="qText"></div>
-        <div class="music hidden" id="musicBar">
-          <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          <span class="music-label">音楽クイズ</span>
-          <button type="button" class="btn" id="btnMusic">♪ 曲を流す</button>
-        </div>
         <div class="timebar" id="timeBar"><i id="timerFill"></i></div>
         <div class="answers" id="answers"></div>
         <div class="reveal-box hidden" id="revealBox" aria-live="polite"></div>
@@ -154,14 +149,12 @@
         <label class="field">サブタイトル<input type="text" id="setSub"></label>
         <label class="field">制限時間（秒）<input type="number" id="setTimer" min="3" max="120"></label>
         <label class="field check"><input type="checkbox" id="setSound"> 効果音を鳴らす</label>
-        <label class="field check"><input type="checkbox" id="setAutoMusic"> カウント開始と同時に曲を流す（音源のある問題）</label>
-        <label class="field check"><input type="checkbox" id="setBgm"> 考えタイムにBGMを流す（音源のない問題）</label>
       </div>
       <div class="toolbar">
         <button type="button" class="btn" id="btnRewind">第1問にもどす</button>
         <button type="button" class="btn ghost" id="btnFactory">すべて初期状態にする</button>
       </div>
-      <p class="note">ふりがなは「竹刀《しない》」のように、漢字のあとに《 》で書くと表示されます。<br>登録した音源は、この端末のブラウザの中だけに保存されます（インターネットには送信されません）。<br>データはこの端末のブラウザに自動保存されます。別の端末で使うときは「データを書き出す／読み込む」を使ってください。</p>
+      <p class="note">ふりがなは「竹刀《しない》」のように、漢字のあとに《 》で書くと表示されます。<br>データはこの端末のブラウザに自動保存されます。別の端末で使うときは「データを書き出す／読み込む」を使ってください。</p>
     </div>
   </section>
 </main>
@@ -211,22 +204,6 @@
         <textarea id="fFree" rows="2"></textarea>
       </fieldset>
 
-      <fieldset class="blk" id="blkAudio">
-        <legend>音源（曲を流しながら出題するとき）</legend>
-        <div class="audio-row">
-          <span id="fAudioName" class="audio-name">音源なし</span>
-          <label class="btn sm gold" for="fAudioFile">音源ファイルを選ぶ</label>
-          <input type="file" id="fAudioFile" accept="audio/*,.mp3,.m4a,.wav,.aac" hidden>
-          <button type="button" class="btn sm" id="fAudioPlay">▶ 試聴</button>
-          <button type="button" class="btn sm" id="fAudioDel">外す</button>
-        </div>
-        <div class="form-grid">
-          <label class="field">再生を始める位置（秒）<input type="number" id="fAStart" min="0" step="0.5"></label>
-          <label class="field">流す長さ（秒・0で最後まで）<input type="number" id="fALen" min="0" step="1"></label>
-        </div>
-        <p class="hint">イントロクイズなら「0秒から10秒」、サビクイズならサビの位置から流すと盛り上がります。</p>
-      </fieldset>
-      <label class="field">出題者メモ（クイズ画面には表示されません）<input type="text" id="fMemo"></label>
       <label class="field">解説（正解発表のあとに表示・空欄可）<textarea id="fExplain" rows="2"></textarea></label>
       <div class="form-grid">
         <label class="field check"><input type="checkbox" id="fEnabled"> この問題を出題する</label>
