@@ -8,7 +8,8 @@ const LETTERS = ['A', 'B', 'C', 'D'];
 const LEVEL_LABEL = { 1: '★ やさしい', 2: '★★ ふつう', 3: '★★★ むずかしい' };
 const TYPE_LABEL = { choice: '選択', ox: '○✕', free: '口頭・記述' };
 
-const DEFAULT_SETTINGS = { title: '剣道合宿 クイズ大会', subtitle: '致道館 合宿レクリエーション', timer: 15, sound: true };
+const DATA_VER = 2;
+const DEFAULT_SETTINGS = { title: '致道館　レクリエーションクイズ大会', subtitle: '剣道合宿', timer: 15, sound: true, bgm: true, autoMusic: true };
 const DEFAULT_TEAMS = [
   { name: '赤チーム', color: '#d8342c' },
   { name: '白チーム', color: '#f3efe4' },
@@ -17,8 +18,8 @@ const DEFAULT_TEAMS = [
 ];
 
 // Q(形式, ジャンル, 難しさ, 得点, 問題文, 選択肢, 正解, 解説, 要確認)
-const Q = (type, cat, level, pts, text, choices, answer, explain = '', check = false) =>
-  ({ type, cat, level, pts, text, choices, answer, explain, check });
+const Q = (type, cat, level, pts, text, choices, answer, explain = '', check = false, memo = '') =>
+  ({ type, cat, level, pts, text, choices, answer, explain, check, memo });
 
 const DEFAULT_QUESTIONS = [
   // 道場・先生
@@ -72,6 +73,40 @@ const DEFAULT_QUESTIONS = [
   Q('choice', 'ファイナル', 3, 50, '剣道の試合で、相手に向かってする立礼は、およそ何度頭を下げる？', ['15度', '30度', '45度', '90度'], 0, '相手への礼は約15度、神前や上座への礼は約30度です。'),
 ];
 
+
+// 音楽クイズ（♪の問題は、出題者が用意した音源を「準備・設定」で登録すると曲を流しながら出題できます）
+const MUSIC_QUESTIONS = [
+  // 最新の曲（イントロクイズ）
+  Q('choice', '音楽（最近の曲）', 1, 10, '♪ 流れている曲のタイトルは？', ['ライラック', 'ケセラセラ', '青と夏', 'インフェルノ'], 0, 'Mrs. GREEN APPLE「ライラック」（2024年）。アニメ『忘却バッテリー』の主題歌です。', true, '登録する音源：Mrs. GREEN APPLE「ライラック」'),
+  Q('choice', '音楽（最近の曲）', 1, 10, '♪ 流れている曲を歌っているのは？', ['Creepy Nuts', 'YOASOBI', 'King Gnu', 'Vaundy'], 0, 'Creepy Nuts「Bling-Bang-Bang-Born」（2024年）。アニメ『マッシュル』の主題歌です。', true, '登録する音源：Creepy Nuts「Bling-Bang-Bang-Born」'),
+  Q('choice', '音楽（最近の曲）', 1, 10, '♪ 流れている曲のタイトルは？', ['アイドル', '夜に駆ける', '群青', '怪物'], 0, 'YOASOBI「アイドル」（2023年）。アニメ『【推しの子】』の主題歌です。', true, '登録する音源：YOASOBI「アイドル」'),
+  // 2000年代（イントロクイズ）
+  Q('choice', '音楽（2000年代）', 2, 10, '♪ 流れている曲を歌っているのは？', ['SMAP', '嵐', 'TOKIO', 'V6'], 0, 'SMAP「世界に一つだけの花」（2003年）。', true, '登録する音源：SMAP「世界に一つだけの花」'),
+  Q('choice', '音楽（2000年代）', 2, 10, '♪ 流れている曲のタイトルは？', ['キセキ', '愛唄', '遥か', '刹那'], 0, 'GReeeeN「キセキ」（2008年）。ドラマ『ROOKIES』の主題歌です。選択肢はすべてGReeeeNの曲でした。', true, '登録する音源：GReeeeN「キセキ」'),
+  Q('choice', '音楽（2000年代）', 2, 10, '♪ 流れている曲を歌っているのは？', ['一青窈', '平井堅', '大塚愛', '中島美嘉'], 0, '一青窈「ハナミズキ」（2004年）。', true, '登録する音源：一青窈「ハナミズキ」'),
+  // 90年代（イントロクイズ）
+  Q('choice', '音楽（90年代）', 3, 20, '♪ 流れている曲のタイトルは？', ['夜空ノムコウ', 'らいおんハート', 'SHAKE', 'ダイナマイト'], 0, 'SMAP「夜空ノムコウ」（1998年）。選択肢はすべてSMAPの曲でした。', true, '登録する音源：SMAP「夜空ノムコウ」'),
+  Q('choice', '音楽（90年代）', 3, 20, '♪ 流れている曲を歌っているのは？', ['DREAMS COME TRUE', 'globe', 'TRF', 'Every Little Thing'], 0, 'DREAMS COME TRUE「LOVE LOVE LOVE」（1995年）。', true, '登録する音源：DREAMS COME TRUE「LOVE LOVE LOVE」'),
+  Q('choice', '音楽（90年代）', 3, 20, '♪ 流れている曲のタイトルは？', ['それが大事', '愛は勝つ', 'どんなときも。', '負けないで'], 0, '大事MANブラザーズバンド「それが大事」（1991年）。', true, '登録する音源：大事MANブラザーズバンド「それが大事」'),
+  // 音楽の知識（音源なしでOK）
+  Q('ox', '音楽', 1, 10, '「Lemon」を歌っているのは米津玄師である。', [], 'o', '米津玄師「Lemon」（2018年）。ドラマ『アンナチュラル』の主題歌です。'),
+  Q('choice', '音楽', 1, 10, '「マリーゴールド」を歌っている歌手は？', ['あいみょん', 'aiko', 'miwa', 'YUI'], 0),
+  Q('choice', '音楽', 2, 10, 'アニメ『鬼滅の刃』の主題歌「紅蓮華」を歌ったのは？', ['LiSA', 'Ado', 'YOASOBI', 'あいみょん'], 0),
+  Q('choice', '音楽', 2, 10, '映画『ONE PIECE FILM RED』の「新時代」を歌った歌手は？', ['Ado', 'LiSA', 'Aimer', 'milet'], 0),
+  Q('ox', '音楽', 2, 10, 'Official髭男dismの呼び名は「ヒゲダン」である。', [], 'o'),
+  Q('choice', '音楽', 2, 10, 'Mrs. GREEN APPLE「ケセラセラ」が2023年に受賞した賞は？', ['日本レコード大賞', 'グラミー賞', 'アカデミー賞', '芥川賞'], 0),
+  Q('choice', '音楽', 3, 20, 'SMAP「世界に一つだけの花」を作詞・作曲したのは？', ['槇原敬之', '小田和正', '桑田佳祐', '中島みゆき'], 0),
+  Q('ox', '音楽', 3, 20, '宇多田ヒカルのアルバム「First Love」は1999年に発売された。', [], 'o'),
+  Q('choice', '音楽', 3, 20, '安室奈美恵の出身地は？', ['沖縄県', '北海道', '大阪府', '福岡県'], 0),
+];
+// ファイナルの直前に音楽クイズを入れる
+function withMusic(qs) {
+  const out = [...qs], fi = out.findIndex((q) => q.cat === 'ファイナル');
+  out.splice(fi < 0 ? out.length : fi, 0, ...MUSIC_QUESTIONS.map(normQ));
+  return out;
+}
+const defaultQuestions = () => withMusic(DEFAULT_QUESTIONS.map(normQ));
+
 /* ---------- 状態 ---------- */
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
@@ -94,7 +129,9 @@ function normQ(q) {
     id: q.id || uid(), enabled: q.enabled !== false, type,
     cat: String(q.cat || 'その他'), level: [1, 2, 3].includes(+q.level) ? +q.level : 1,
     pts: Math.max(0, parseInt(q.pts, 10) || 0), text: String(q.text || ''),
-    choices, answer, explain: String(q.explain || ''), check: !!q.check,
+    choices, answer, explain: String(q.explain || ''), check: !!q.check, memo: String(q.memo || ''),
+    audio: q.audio && q.audio.key ? { key: String(q.audio.key), name: String(q.audio.name || '音源') } : null,
+    aStart: Math.max(0, parseFloat(q.aStart) || 0), aLen: Math.max(0, parseFloat(q.aLen) || 0),
   };
 }
 const normT = (t) => ({ id: t.id || uid(), name: String(t.name || 'チーム'), color: /^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#888888', score: parseInt(t.score, 10) || 0 });
@@ -103,19 +140,25 @@ function factory() {
   return {
     settings: { ...DEFAULT_SETTINGS },
     teams: DEFAULT_TEAMS.map(normT),
-    questions: DEFAULT_QUESTIONS.map(normQ),
-    pos: 0,
+    questions: defaultQuestions(),
+    pos: 0, ver: DATA_VER,
   };
 }
 function load() {
   try {
     const d = JSON.parse(localStorage.getItem(STORE_KEY));
     if (d && Array.isArray(d.questions) && Array.isArray(d.teams)) {
-      return {
+      const st = {
         settings: { ...DEFAULT_SETTINGS, ...d.settings },
         teams: d.teams.map(normT), questions: d.questions.map(normQ),
-        pos: parseInt(d.pos, 10) || 0,
+        pos: parseInt(d.pos, 10) || 0, ver: DATA_VER,
       };
+      if ((d.ver || 1) < 2) { // 前の版からの引きつぎ：タイトル変更と音楽クイズの追加
+        if (st.settings.title === '剣道合宿 クイズ大会') st.settings.title = DEFAULT_SETTINGS.title;
+        if (st.settings.subtitle === '致道館 合宿レクリエーション') st.settings.subtitle = DEFAULT_SETTINGS.subtitle;
+        st.questions = withMusic(st.questions);
+      }
+      return st;
     }
   } catch (e) { /* 読めないときは初期状態 */ }
   return factory();
@@ -185,6 +228,113 @@ const SFX = {
   },
 };
 
+
+/* ---------- 音源の保存（IndexedDB：大きな音声ファイルもこの端末に保存） ---------- */
+const IDB = {
+  db: null,
+  open() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => {
+      if (!window.indexedDB) { rej(new Error('IndexedDBが使えません')); return; }
+      const r = indexedDB.open('kendoQuizAudio', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('files');
+      r.onsuccess = () => { this.db = r.result; res(this.db); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  async tx(mode, fn) {
+    const db = await this.open();
+    return new Promise((res, rej) => {
+      const t = db.transaction('files', mode), req = fn(t.objectStore('files'));
+      t.oncomplete = () => res(req ? req.result : undefined);
+      t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+    });
+  },
+  get(k) { return this.tx('readonly', (st) => st.get(k)); },
+  put(k, v) { return this.tx('readwrite', (st) => st.put(v, k)); },
+  del(k) { return this.tx('readwrite', (st) => st.delete(k)).catch(() => {}); },
+  clear() { return this.tx('readwrite', (st) => st.clear()).catch(() => {}); },
+};
+
+/* ---------- 曲の再生 ---------- */
+const player = new Audio();
+player.preload = 'auto';
+let playerUrl = null, playerKey = null, stopAt = 0, fadeT = null;
+function setSrc(blob, key) {
+  if (playerKey === key && player.src) return;
+  if (playerUrl) URL.revokeObjectURL(playerUrl);
+  playerUrl = URL.createObjectURL(blob); playerKey = key;
+  player.src = playerUrl; player.load();
+}
+async function prepareMusic(q) {
+  if (!q || !q.audio) return false;
+  try {
+    const blob = await IDB.get(q.audio.key);
+    if (!blob) return false;
+    setSrc(blob, q.audio.key); return true;
+  } catch (e) { return false; }
+}
+function playFrom(start, len, resume) {
+  clearInterval(fadeT); player.volume = 1;
+  if (!(resume && player.currentTime > start && !player.ended)) {
+    try { player.currentTime = start; } catch (e) { /* 読み込み前 */ }
+    const seek = () => { if (Math.abs(player.currentTime - start) > 0.5) player.currentTime = start; };
+    player.addEventListener('loadedmetadata', seek, { once: true });
+  }
+  stopAt = len ? start + len : 0;
+  const p = player.play();
+  if (p && p.catch) p.catch(() => toast('曲を再生できませんでした。「♪ 曲を流す」をもう一度押してください'));
+  setMusicUI();
+}
+function playQ(q, resume) {
+  if (!q || !q.audio) return;
+  if (playerKey !== q.audio.key) {
+    toast('曲を読み込み中です。少し待ってからもう一度押してください');
+    prepareMusic(q); return;
+  }
+  playFrom(q.aStart, q.aLen, resume);
+}
+function stopMusic(fade) {
+  clearInterval(fadeT);
+  if (player.paused) { setMusicUI(); return; }
+  if (!fade) { player.pause(); setMusicUI(); return; }
+  fadeT = setInterval(() => {
+    const v = player.volume - 0.1;
+    if (v <= 0.05) { clearInterval(fadeT); player.pause(); player.volume = 1; setMusicUI(); } else player.volume = v;
+  }, 60);
+}
+player.addEventListener('timeupdate', () => { if (stopAt && player.currentTime >= stopAt && !player.paused) stopMusic(true); });
+['play', 'pause', 'ended'].forEach((ev) => player.addEventListener(ev, setMusicUI));
+function setMusicUI() {
+  const on = !player.paused && !player.ended;
+  const bar = $('#musicBar'); if (!bar) return;
+  bar.classList.toggle('playing', on);
+  $('#btnMusic').textContent = on ? '■ 曲を止める' : (phase === 'revealed' ? '♪ もう一度流す' : '♪ 曲を流す');
+  const pv = $('#fAudioPlay'); if (pv) pv.textContent = on ? '■ 止める' : '▶ 試聴';
+}
+
+/* ---------- 考えタイムBGM（オリジナルのリズム。音源のない問題で流れる） ---------- */
+let bgmT = null, bgmStep = 0, bgmNext = 0;
+const BGM_BASS = [0, 0, 7, 0, 5, 0, 7, 10];
+function startBgm() {
+  const a = ac(); if (!a || bgmT || !S.settings.bgm) return;
+  const spb = 60 / 132 / 2; // 8分音符
+  bgmStep = 0; bgmNext = a.currentTime + 0.05;
+  bgmT = setInterval(() => {
+    while (bgmNext < a.currentTime + 0.25) {
+      const st = bgmStep % 16, d = bgmNext - a.currentTime;
+      const hurry = phase === 'counting' && tLeft <= 5;
+      if (st % 2 === 0) tone(110 * Math.pow(2, BGM_BASS[(st / 2) % 8] / 12), spb * 0.85, 'triangle', 0.1, d);
+      noise(0.03, st % 2 ? 0.02 : 0.035, d, 7000);
+      if (st % 8 === 4) noise(0.1, 0.07, d, 1500);
+      if (hurry && st % 2 === 0) tone(880, 0.05, 'square', 0.03, d);
+      bgmStep++; bgmNext += hurry ? spb * 0.8 : spb;
+    }
+  }, 50);
+}
+function stopBgm() { clearInterval(bgmT); bgmT = null; }
+function stopAllMusic(fade) { stopBgm(); stopMusic(fade); }
+
 /* ---------- 共通UI ---------- */
 let toastT = null;
 function toast(msg) {
@@ -215,7 +365,7 @@ function confetti() {
 }
 
 function go(name) {
-  if (screen === 'question' && name !== 'question') pauseTimer();
+  if (screen === 'question' && name !== 'question') { pauseTimer(); stopAllMusic(false); }
   screen = name;
   $$('.screen').forEach((s) => s.classList.toggle('active', s.id === 'screen-' + name));
   $$('.nav [data-go]').forEach((b) => { if (b.dataset.go === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
@@ -241,7 +391,8 @@ function applyTitle() {
 function sw(t) { return `<span class="chip" style="--c:${t.color};--ink:${inkFor(t.color)}"><span class="dot"></span>${esc(t.name)}</span>`; }
 function renderTitle() {
   applyTitle();
-  $('#tTitle').textContent = S.settings.title;
+  const tp = S.settings.title.split(/[　]+/);
+  $('#tTitle').innerHTML = tp.length > 1 ? `<span class="t-top">${esc(tp[0])}</span>${esc(tp.slice(1).join('　'))}` : esc(S.settings.title);
   $('#tSub').textContent = S.settings.subtitle;
   const n = list().length;
   $('#tMeta').textContent = `全${n}問　／　${S.teams.length}チーム対抗`;
@@ -254,7 +405,7 @@ $('#btnStart').addEventListener('click', () => { S.pos = 0; awarded.clear(); sav
 $('#btnResume').addEventListener('click', () => { ac(); go('question'); });
 
 $('#btnSound').addEventListener('click', () => {
-  S.settings.sound = !S.settings.sound; save(); syncSound();
+  S.settings.sound = !S.settings.sound; save(); syncSound(); if (!S.settings.sound) stopBgm();
   if (S.settings.sound) SFX.point();
 });
 function syncSound() {
@@ -293,6 +444,7 @@ function showQuestion(i, keepPhase) {
   const plaque = $('#plaque');
   plaque.innerHTML = vstack(isLast ? '最終問題' : `第${kan(i + 1)}問`);
   plaque.classList.toggle('final', isLast);
+  plaque.classList.toggle('long', plaque.children.length > 4);
   plaque.classList.remove('enter'); void plaque.offsetWidth; plaque.classList.add('enter');
 
   $('#qCat').textContent = q.cat;
@@ -314,6 +466,9 @@ function showQuestion(i, keepPhase) {
     A.innerHTML = '<div class="ans free"><span class="q-mark">？</span><small>早押し・口頭・ボードで答えよう</small></div>';
   }
   $('#revealBox').classList.add('hidden');
+  stopAllMusic(false);
+  $('#musicBar').classList.toggle('hidden', !q.audio);
+  if (q.audio) prepareMusic(q).then((ok) => { if (!ok) toast('この問題の音源が見つかりません。「準備・設定」で登録し直してください'); });
   tTotal = Math.max(3, parseInt(S.settings.timer, 10) || 15);
   tLeft = tTotal; drawTimer();
   renderStrip(); updateControls();
@@ -327,13 +482,16 @@ function drawTimer() {
   $('#timeBar').classList.toggle('warn', tLeft <= 5);
 }
 function stopTimer() { clearInterval(tInt); tInt = null; }
-function pauseTimer() { if (phase === 'counting') { stopTimer(); phase = 'paused'; updateControls(); } }
+function pauseTimer() { if (phase === 'counting') { stopTimer(); stopAllMusic(true); phase = 'paused'; updateControls(); } }
 function toggleTimer() {
   if (phase === 'revealing' || phase === 'revealed') return;
   if (phase === 'counting') { pauseTimer(); return; }
   if (phase === 'locked' || tLeft <= 0) tLeft = tTotal;
   ac();
+  const resume = phase === 'paused';
   phase = 'counting'; updateControls();
+  const cq = cur();
+  if (cq && cq.audio) { if (S.settings.autoMusic) playQ(cq, resume); } else startBgm();
   lastSec = Math.ceil(tLeft);
   const t0 = performance.now(), from = tLeft;
   tInt = setInterval(() => {
@@ -342,7 +500,7 @@ function toggleTimer() {
     const s = Math.ceil(tLeft);
     if (s !== lastSec) { lastSec = s; if (s > 0) (s <= 5 ? SFX.last : SFX.tick)(); }
     if (tLeft <= 0) {
-      stopTimer(); phase = 'locked'; updateControls(); drawTimer();
+      stopTimer(); stopAllMusic(true); phase = 'locked'; updateControls(); drawTimer();
       SFX.timeup(); splash('<div class="sp-timeup">タイムアップ！</div>', 1300);
     }
   }, 100);
@@ -361,12 +519,13 @@ function answerText(q) {
 function reveal() {
   if (phase === 'revealing' || phase === 'revealed') return;
   const q = cur(); if (!q) return;
-  stopTimer(); phase = 'revealing'; updateControls();
+  stopTimer(); stopAllMusic(true); phase = 'revealing'; updateControls();
   splash('<div class="sp-lead">正解は…</div>');
   SFX.drum(1400);
   setTimeout(() => {
     SFX.cymbal(); SFX.pinpon();
     splash(answerSplash(q), 1900);
+    if (q.audio) setTimeout(() => { if (phase === 'revealed' && cur() === q) playQ(q); }, 1900); // 答え合わせでもう一度流す
     $$('#answers .ans').forEach((el) => {
       if (q.type === 'free') { el.classList.add('correct'); el.innerHTML = `<span class="q-mark" style="font-size:clamp(1.8rem,5vw,3.6rem)">${fmt(q.answer)}</span>`; return; }
       const ok = String(el.dataset.k) === String(q.answer);
@@ -375,6 +534,7 @@ function reveal() {
     const rb = $('#revealBox');
     rb.innerHTML = `<b>正解</b>${answerText(q)}${q.explain ? `<p>${fmt(q.explain)}</p>` : ''}`;
     rb.classList.remove('hidden');
+    setTimeout(() => rb.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 50);
     phase = 'revealed'; renderStrip(); updateControls();
   }, 1450);
 }
@@ -404,6 +564,7 @@ function updateControls() {
   $('#btnAward').classList.toggle('hidden', !rev);
   $('#btnNext').classList.toggle('hidden', rev);
   $('#btnPrev').disabled = S.pos <= 0 || ing;
+  setMusicUI();
   $('#btnTimer').textContent = phase === 'counting' ? '⏸ ストップ' : phase === 'paused' ? '▶ 再開' : '⏱ カウント開始';
   if (q) {
     const isLast = S.pos >= list().length - 1;
@@ -429,6 +590,11 @@ function award() {
   }
 }
 $('#btnTimer').addEventListener('click', toggleTimer);
+$('#btnMusic').addEventListener('click', () => {
+  const q = cur(); if (!q || !q.audio) return;
+  if (!player.paused) { stopMusic(true); return; }
+  stopBgm(); playQ(q, true);
+});
 $('#btnReveal').addEventListener('click', () => { ac(); reveal(); });
 $('#btnAward').addEventListener('click', award);
 $('#btnNext').addEventListener('click', () => showQuestion(S.pos + 1));
@@ -524,7 +690,7 @@ function renderQList() {
       <span class="qi-no">${no}</span>
       <span class="tag ${q.type}">${TYPE_LABEL[q.type]}</span>
       <span class="qi-lv">${'★'.repeat(q.level)}</span>
-      <span class="qi-text"><span class="cat">${esc(q.cat)}</span>${esc(plain(q.text))}${q.check ? '<span class="warn">要確認</span>' : ''}</span>
+      <span class="qi-text"><span class="cat">${esc(q.cat)}</span>${q.audio ? '<span class="tag audio" title="音源あり">♪ 音源あり</span> ' : ''}${esc(plain(q.text))}${q.check ? '<span class="warn">要確認</span>' : ''}${q.memo ? `<span class="memo">${esc(q.memo)}</span>` : ''}</span>
       <span class="qi-pts">${q.pts}点</span>
       <span class="qi-act">
         <button type="button" class="btn sm" data-act="up" aria-label="上へ" ${i === 0 ? 'disabled' : ''}>↑</button>
@@ -542,8 +708,12 @@ $('#qList').addEventListener('click', (e) => {
   else if (act === 'up' && i > 0) [Qs[i - 1], Qs[i]] = [Qs[i], Qs[i - 1]];
   else if (act === 'down' && i < Qs.length - 1) [Qs[i + 1], Qs[i]] = [Qs[i], Qs[i + 1]];
   else if (act === 'edit') { openEditor(i); return; }
-  else if (act === 'dup') Qs.splice(i + 1, 0, normQ({ ...Qs[i], id: uid(), choices: [...Qs[i].choices] }));
-  else if (act === 'del') { if (!confirm(`「${plain(Qs[i].text).slice(0, 30)}」を削除しますか？`)) return; Qs.splice(i, 1); }
+  else if (act === 'dup') {
+    const nid = uid(), src = Qs[i];
+    Qs.splice(i + 1, 0, normQ({ ...src, id: nid, choices: [...src.choices], audio: null }));
+    if (src.audio) IDB.get(src.audio.key).then((b) => { if (!b) return; return IDB.put(nid, b).then(() => { const n = S.questions.find((x) => x.id === nid); if (n) { n.audio = { key: nid, name: src.audio.name }; save(); renderQList(); } }); }).catch(() => {});
+  }
+  else if (act === 'del') { if (!confirm(`「${plain(Qs[i].text).slice(0, 30)}」を削除しますか？`)) return; if (Qs[i].audio) IDB.del(Qs[i].audio.key); Qs.splice(i, 1); }
   save(); renderQList();
 });
 $('#btnAddQ').addEventListener('click', () => openEditor(-1));
@@ -559,11 +729,21 @@ $('#btnShuffle').addEventListener('click', () => {
   S.questions = [...rest, ...fin]; S.pos = 0; save(); renderQList(); toast('シャッフルしました（第1問から始まります）');
 });
 $('#btnResetQ').addEventListener('click', () => {
-  if (!confirm('問題を最初に入っていた内容に戻します。追加・編集した問題は消えます。よろしいですか？')) return;
-  S.questions = DEFAULT_QUESTIONS.map(normQ); S.pos = 0; save(); renderQList(); toast('問題を最初の内容に戻しました');
+  if (!confirm('問題を最初に入っていた内容に戻します。追加・編集した問題と、登録した音源は消えます。よろしいですか？')) return;
+  IDB.clear(); S.questions = defaultQuestions(); S.pos = 0; save(); renderQList(); toast('問題を最初の内容に戻しました（登録した音源も消えました）');
 });
-$('#btnExport').addEventListener('click', () => {
-  const data = { app: 'kendo-quiz', version: 1, settings: S.settings, teams: S.teams, questions: S.questions };
+const blobToDataURL = (b) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+$('#btnExport').addEventListener('click', async () => {
+  let qs = S.questions;
+  const withAudio = qs.some((q) => q.audio) && confirm('登録した音源もファイルに含めますか？\n（含めると別の端末でも曲が流せます。ファイルは大きくなります）');
+  if (withAudio) {
+    toast('音源をまとめています…');
+    qs = await Promise.all(qs.map(async (q) => {
+      if (!q.audio) return q;
+      try { const b = await IDB.get(q.audio.key); return b ? { ...q, audioData: await blobToDataURL(b) } : q; } catch (e) { return q; }
+    }));
+  }
+  const data = { app: 'kendo-quiz', version: DATA_VER, settings: S.settings, teams: S.teams, questions: qs };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   const d = new Date(), stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
@@ -575,12 +755,22 @@ $('#btnExport').addEventListener('click', () => {
 $('#fileImport').addEventListener('change', (e) => {
   const f = e.target.files[0]; if (!f) return;
   const r = new FileReader();
-  r.onload = () => {
+  r.onload = async () => {
     try {
       const d = JSON.parse(r.result);
       const qs = Array.isArray(d) ? d : d.questions;
       if (!Array.isArray(qs)) throw new Error();
-      S.questions = qs.map(normQ);
+      toast('読み込み中です…');
+      S.questions = await Promise.all(qs.map(async (raw) => {
+        const q = normQ(raw);
+        if (typeof raw.audioData === 'string' && raw.audioData.startsWith('data:')) {
+          try {
+            const b = await (await fetch(raw.audioData)).blob();
+            await IDB.put(q.id, b); q.audio = { key: q.id, name: (raw.audio && raw.audio.name) || '音源' };
+          } catch (e2) { q.audio = null; }
+        }
+        return q;
+      }));
       if (!Array.isArray(d) && Array.isArray(d.teams) && d.teams.length) S.teams = d.teams.map(normT);
       if (!Array.isArray(d) && d.settings) S.settings = { ...DEFAULT_SETTINGS, ...d.settings };
       S.pos = 0; save(); renderAdmin(); applyTitle(); syncSound();
@@ -601,6 +791,28 @@ function showBlocks() {
   $('#blkFree').classList.toggle('hidden', t !== 'free');
 }
 $('#fType').addEventListener('change', showBlocks);
+let edAudio = null, edRemove = false, edExisting = null;
+function showAudioName() {
+  const n = edAudio ? edAudio.name : (!edRemove && edExisting ? edExisting.name : '');
+  $('#fAudioName').textContent = n ? `♪ ${n}` : '音源なし';
+  $('#fAudioDel').disabled = !n; $('#fAudioPlay').disabled = !n;
+}
+$('#fAudioFile').addEventListener('change', (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (f.size > 60 * 1024 * 1024) toast('ファイルが大きいため、保存に時間がかかることがあります');
+  edAudio = { blob: f, name: f.name }; edRemove = false; stopMusic(false); showAudioName();
+});
+$('#fAudioDel').addEventListener('click', () => { edAudio = null; edRemove = true; stopMusic(false); showAudioName(); });
+$('#fAudioPlay').addEventListener('click', async () => {
+  if (!player.paused) { stopMusic(true); return; }
+  try {
+    if (edAudio) setSrc(edAudio.blob, 'edit:' + edAudio.name + edAudio.blob.size);
+    else if (edExisting && !edRemove) { const b = await IDB.get(edExisting.key); if (!b) { toast('音源が見つかりません'); return; } setSrc(b, edExisting.key); }
+    else return;
+    playFrom(Math.max(0, parseFloat($('#fAStart').value) || 0), Math.max(0, parseFloat($('#fALen').value) || 0));
+  } catch (e) { toast('試聴できませんでした'); }
+});
+dlg.addEventListener('close', () => stopMusic(false));
 function openEditor(i) {
   editIndex = i;
   const q = i >= 0 ? S.questions[i] : normQ({ type: 'choice', cat: '剣道', level: 1, pts: 10, choices: ['', '', '', ''], answer: 0 });
@@ -613,6 +825,8 @@ function openEditor(i) {
   if (q.type !== 'choice') $$('input[name=fAns]')[0].checked = true;
   $$('input[name=fOx]').forEach((r) => { r.checked = r.value === (q.type === 'ox' ? q.answer : 'o'); });
   $('#fFree').value = q.type === 'free' ? q.answer : '';
+  $('#fMemo').value = q.memo; $('#fAStart').value = q.aStart; $('#fALen').value = q.aLen;
+  edAudio = null; edRemove = false; edExisting = q.audio; showAudioName();
   $('#catList').innerHTML = [...new Set(S.questions.map((x) => x.cat))].map((c) => `<option value="${esc(c)}">`).join('');
   $('#fErr').textContent = '';
   showBlocks();
@@ -620,7 +834,7 @@ function openEditor(i) {
   $('#fText').focus();
 }
 $('#btnCancel').addEventListener('click', () => dlg.close());
-$('#editForm').addEventListener('submit', (e) => {
+$('#editForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const type = $('#fType').value, text = $('#fText').value.trim();
   const err = (m) => { $('#fErr').textContent = m; };
@@ -630,6 +844,8 @@ $('#editForm').addEventListener('submit', (e) => {
     cat: $('#fCat').value.trim() || 'その他', level: +$('#fLevel').value,
     pts: Math.max(0, parseInt($('#fPts').value, 10) || 0), explain: $('#fExplain').value.trim(),
     enabled: $('#fEnabled').checked, check: $('#fCheck').checked, choices: [],
+    memo: $('#fMemo').value.trim(), aStart: $('#fAStart').value, aLen: $('#fALen').value,
+    audio: edRemove ? null : edExisting,
   };
   if (type === 'choice') {
     const sel = +(($$('input[name=fAns]').find((r) => r.checked) || {}).value ?? -1);
@@ -645,6 +861,18 @@ $('#editForm').addEventListener('submit', (e) => {
     if (!q.answer) return err('正解・模範解答を入力してください。');
   }
   const nq = normQ(q);
+  try {
+    if (edAudio) {
+      $('#btnSaveQ').disabled = true; err('音源を保存しています…');
+      await IDB.put(nq.id, edAudio.blob);
+      nq.audio = { key: nq.id, name: edAudio.name };
+    } else if (edRemove && edExisting) await IDB.del(edExisting.key);
+  } catch (e2) {
+    $('#btnSaveQ').disabled = false;
+    return err('音源を保存できませんでした。端末の空き容量を確認するか、短い音源にしてください。');
+  }
+  $('#btnSaveQ').disabled = false;
+  playerKey = null; // 次回の再生で読み込み直す
   if (editIndex >= 0) S.questions[editIndex] = nq; else S.questions.push(nq);
   save(); dlg.close(); renderQList(); toast('保存しました');
 });
@@ -686,15 +914,18 @@ $('#btnResetScore').addEventListener('click', () => {
 function renderSettings() {
   $('#setTitle').value = S.settings.title; $('#setSub').value = S.settings.subtitle;
   $('#setTimer').value = S.settings.timer; $('#setSound').checked = S.settings.sound;
+  $('#setBgm').checked = S.settings.bgm; $('#setAutoMusic').checked = S.settings.autoMusic;
 }
 $('#setTitle').addEventListener('input', (e) => { S.settings.title = e.target.value; save(); applyTitle(); });
 $('#setSub').addEventListener('input', (e) => { S.settings.subtitle = e.target.value; save(); });
 $('#setTimer').addEventListener('change', (e) => { S.settings.timer = Math.min(120, Math.max(3, parseInt(e.target.value, 10) || 15)); e.target.value = S.settings.timer; save(); });
 $('#setSound').addEventListener('change', (e) => { S.settings.sound = e.target.checked; save(); syncSound(); });
+$('#setBgm').addEventListener('change', (e) => { S.settings.bgm = e.target.checked; save(); });
+$('#setAutoMusic').addEventListener('change', (e) => { S.settings.autoMusic = e.target.checked; save(); });
 $('#btnRewind').addEventListener('click', () => { S.pos = 0; awarded.clear(); save(); toast('第1問にもどしました'); });
 $('#btnFactory').addEventListener('click', () => {
-  if (!confirm('問題・チーム・得点・設定をすべて初期状態に戻します。よろしいですか？')) return;
-  S = factory(); awarded.clear(); save(); renderAdmin(); applyTitle(); syncSound(); toast('初期状態に戻しました');
+  if (!confirm('問題・チーム・得点・設定・登録した音源をすべて初期状態に戻します。よろしいですか？')) return;
+  IDB.clear(); S = factory(); awarded.clear(); save(); renderAdmin(); applyTitle(); syncSound(); toast('初期状態に戻しました');
 });
 
 /* ---------- 起動 ---------- */
