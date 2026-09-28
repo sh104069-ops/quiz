@@ -1,1 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0c1733">
+<title>剣道合宿 クイズ大会</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<header class="topbar">
+  <div class="brand"><span aria-hidden="true">⚔️</span><span id="brandTitle">剣道合宿 クイズ大会</span></div>
+  <nav class="nav" aria-label="画面切りかえ">
+    <button type="button" data-go="title">タイトル</button>
+    <button type="button" data-go="question">問題</button>
+    <button type="button" data-go="score">得点ボード</button>
+    <button type="button" data-go="result">結果発表</button>
+    <button type="button" data-go="admin">準備・設定</button>
+    <button type="button" id="btnSound" aria-pressed="true" title="効果音">🔊</button>
+    <button type="button" id="btnFull" title="全画面表示">⛶</button>
+  </nav>
+</header>
+
+<main>
+  <!-- タイトル -->
+  <section id="screen-title" class="screen active">
+    <p class="t-sub" id="tSub"></p>
+    <h1 class="t-title" id="tTitle"></h1>
+    <svg class="shinai" viewBox="0 0 720 44" aria-hidden="true">
+      <rect x="8" y="13" width="156" height="18" rx="9" fill="#efe8d8"/>
+      <path d="M20 22H152" stroke="#cfc6b2" stroke-width="2" stroke-dasharray="6 8"/>
+      <rect x="164" y="3" width="12" height="38" rx="4" fill="#231a10"/>
+      <rect x="176" y="15" width="476" height="14" fill="#d9b97a"/>
+      <path d="M176 22H652" stroke="#b58f4f" stroke-width="1.5"/>
+      <line x1="176" y1="15.5" x2="704" y2="15.5" stroke="#efe8d8" stroke-width="1.6"/>
+      <rect x="522" y="12.5" width="9" height="19" rx="2" fill="#efe8d8"/>
+      <rect x="652" y="12.5" width="56" height="19" rx="7" fill="#efe8d8"/>
+    </svg>
+    <p class="t-meta" id="tMeta"></p>
+    <div class="t-actions">
+      <button type="button" class="btn big primary" id="btnStart">▶ 第1問からはじめる</button>
+      <button type="button" class="btn big" id="btnResume">続きから</button>
+    </div>
+    <div class="t-teams" id="tTeams"></div>
+    <p class="t-help">操作キー：スペース＝カウント開始／停止、Enter＝正解発表・次へ、←→＝前後の問題、1〜8＝正解チームの選択</p>
+  </section>
+
+  <!-- 問題 -->
+  <section id="screen-question" class="screen">
+    <div class="q-layout">
+      <div class="plaque vs" id="plaque"></div>
+      <div class="q-main">
+        <div class="q-meta">
+          <span class="pill" id="qCat"></span>
+          <span class="pill" id="qLevel"></span>
+          <span class="pill" id="qType"></span>
+          <span class="pill pts" id="qPts"></span>
+          <span class="q-count" id="qCount"></span>
+          <span class="q-timer" id="timerNum" aria-live="off"></span>
+        </div>
+        <div class="q-text" id="qText"></div>
+        <div class="timebar" id="timeBar"><i id="timerFill"></i></div>
+        <div class="answers" id="answers"></div>
+        <div class="reveal-box hidden" id="revealBox" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="q-foot">
+      <div class="strip" id="strip">
+        <p class="strip-hint hidden" id="stripHint">正解したチームをタップしてください</p>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="controls">
+        <button type="button" class="btn" id="btnPrev">◀ 前へ</button>
+        <button type="button" class="btn gold" id="btnTimer">⏱ カウント開始</button>
+        <button type="button" class="btn primary" id="btnReveal">🥁 正解発表</button>
+        <button type="button" class="btn primary hidden" id="btnAward">次の問題へ</button>
+        <button type="button" class="btn" id="btnNext">次へ ▶</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 得点ボード -->
+  <section id="screen-score" class="screen">
+    <div class="board-head">
+      <h2>得点ボード</h2>
+      <div class="controls">
+        <button type="button" class="btn" data-go="question">問題にもどる</button>
+        <button type="button" class="btn primary" data-go="result">結果発表へ</button>
+      </div>
+    </div>
+    <div class="kakeban" id="kakeban"></div>
+    <p class="note">±ボタンで得点を手動で調整できます（早押し・ボーナス問題などに）。</p>
+  </section>
+
+  <!-- 結果発表 -->
+  <section id="screen-result" class="screen">
+    <h2>結果発表</h2>
+    <ol class="result-list" id="resultList"></ol>
+    <button type="button" class="btn big primary" id="btnRank"></button>
+  </section>
+
+  <!-- 準備・設定 -->
+  <section id="screen-admin" class="screen">
+    <div class="board-head">
+      <h2>準備・設定</h2>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" data-tab="q" aria-selected="true">問題</button>
+        <button type="button" role="tab" data-tab="t" aria-selected="false">チーム</button>
+        <button type="button" role="tab" data-tab="s" aria-selected="false">全体設定</button>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="tab-q">
+      <div class="toolbar">
+        <button type="button" class="btn primary" id="btnAddQ">＋ 問題を追加</button>
+        <label class="inline">出題する問題：
+          <select id="bulkSel">
+            <option value="">一括で切りかえ…</option>
+            <option value="all">すべて出題</option>
+            <option value="l1">★やさしい だけ</option>
+            <option value="l2">★★ふつう まで</option>
+            <option value="none">すべて出題しない</option>
+          </select>
+        </label>
+        <button type="button" class="btn" id="btnShuffle">順番をシャッフル</button>
+        <button type="button" class="btn" id="btnExport">データを書き出す</button>
+        <label class="btn" for="fileImport">データを読み込む</label>
+        <input type="file" id="fileImport" accept="application/json,.json" hidden>
+        <button type="button" class="btn ghost" id="btnResetQ">最初の問題に戻す</button>
+      </div>
+      <p class="note" id="qSummary"></p>
+      <ol class="qlist" id="qList"></ol>
+    </div>
+
+    <div class="tab-pane hidden" id="tab-t">
+      <div class="toolbar">
+        <button type="button" class="btn primary" id="btnAddTeam">＋ チームを追加</button>
+        <button type="button" class="btn ghost" id="btnResetScore">得点をすべて0にする</button>
+      </div>
+      <div class="team-list" id="teamList"></div>
+    </div>
+
+    <div class="tab-pane hidden" id="tab-s">
+      <div class="form-grid">
+        <label class="field">大会名<input type="text" id="setTitle"></label>
+        <label class="field">サブタイトル<input type="text" id="setSub"></label>
+        <label class="field">制限時間（秒）<input type="number" id="setTimer" min="3" max="120"></label>
+        <label class="field check"><input type="checkbox" id="setSound"> 効果音を鳴らす</label>
+      </div>
+      <div class="toolbar">
+        <button type="button" class="btn" id="btnRewind">第1問にもどす</button>
+        <button type="button" class="btn ghost" id="btnFactory">すべて初期状態にする</button>
+      </div>
+      <p class="note">ふりがなは「竹刀《しない》」のように、漢字のあとに《 》で書くと表示されます。<br>データはこの端末のブラウザに自動保存されます。別の端末で使うときは「データを書き出す／読み込む」を使ってください。</p>
+    </div>
+  </section>
+</main>
+
+<!-- 問題編集 -->
+<dialog id="editDialog">
+  <form method="dialog" id="editForm">
+    <div class="dlg-body">
+      <h3 id="dlgTitle">問題の編集</h3>
+      <div class="form-grid">
+        <label class="field">出題形式
+          <select id="fType">
+            <option value="choice">選択（2〜4択）</option>
+            <option value="ox">○×</option>
+            <option value="free">口頭・記述（出題者が判定）</option>
+          </select>
+        </label>
+        <label class="field">ジャンル<input type="text" id="fCat" list="catList"></label>
+        <datalist id="catList"></datalist>
+        <label class="field">難しさ
+          <select id="fLevel">
+            <option value="1">★ やさしい（低学年向け）</option>
+            <option value="2">★★ ふつう</option>
+            <option value="3">★★★ むずかしい（中学生向け）</option>
+          </select>
+        </label>
+        <label class="field">得点<input type="number" id="fPts" min="0" max="1000"></label>
+      </div>
+      <label class="field">問題文<textarea id="fText" rows="3" required></textarea></label>
+
+      <fieldset class="blk" id="blkChoice">
+        <legend>選択肢（正解に●をつける／空欄は表示されません）</legend>
+        <div class="choice-row"><input type="radio" name="fAns" value="0" aria-label="Aを正解にする"><b class="lt c0">A</b><input type="text" id="fC0"></div>
+        <div class="choice-row"><input type="radio" name="fAns" value="1" aria-label="Bを正解にする"><b class="lt c1">B</b><input type="text" id="fC1"></div>
+        <div class="choice-row"><input type="radio" name="fAns" value="2" aria-label="Cを正解にする"><b class="lt c2">C</b><input type="text" id="fC2"></div>
+        <div class="choice-row"><input type="radio" name="fAns" value="3" aria-label="Dを正解にする"><b class="lt c3">D</b><input type="text" id="fC3"></div>
+      </fieldset>
+
+      <fieldset class="blk" id="blkOx">
+        <legend>正解</legend>
+        <label class="inline"><input type="radio" name="fOx" value="o"> ○</label>
+        <label class="inline"><input type="radio" name="fOx" value="x"> ✕</label>
+      </fieldset>
+
+      <fieldset class="blk" id="blkFree">
+        <legend>正解・模範解答（正解発表で表示）</legend>
+        <textarea id="fFree" rows="2"></textarea>
+      </fieldset>
+
+      <label class="field">解説（正解発表のあとに表示・空欄可）<textarea id="fExplain" rows="2"></textarea></label>
+      <div class="form-grid">
+        <label class="field check"><input type="checkbox" id="fEnabled"> この問題を出題する</label>
+        <label class="field check"><input type="checkbox" id="fCheck"> 要確認（正解がまだ決まっていない）</label>
+      </div>
+      <p class="err" id="fErr" role="alert"></p>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn ghost dark" id="btnCancel">キャンセル</button>
+      <button type="submit" class="btn primary" id="btnSaveQ">保存する</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="splash" role="status"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
