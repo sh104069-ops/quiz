@@ -183,8 +183,16 @@ function normQ(q) {
 const names = (v) => (Array.isArray(v) ? v : String(v || '').split(/[、,，\s]+/)).map((x) => String(x).trim()).filter(Boolean);
 const normT = (t) => ({
   id: t.id || uid(), name: String(t.name || 'チーム'), color: /^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#888888', score: parseInt(t.score, 10) || 0,
-  members: { low: names(t.members && t.members.low), high: names(t.members && t.members.high), jh: names(t.members && t.members.jh) },
+  members: normMembers(t.members),
 });
+const MAX_MEMBERS = 10;
+// メンバー：[{ name, g }]（最大10名）。前の版の { low:[], high:[], jh:[] } 形式も読みかえる
+function normMembers(m) {
+  let arr = [];
+  if (Array.isArray(m)) arr = m.map((x) => ({ name: String((x && x.name) || '').trim(), g: GROUPS[x && x.g] ? x.g : 'low' }));
+  else if (m && typeof m === 'object') arr = Object.keys(GROUPS).flatMap((g) => names(m[g]).map((n) => ({ name: n, g })));
+  return arr.slice(0, MAX_MEMBERS);
+}
 
 function factory() {
   return {
@@ -444,7 +452,7 @@ function applyTitle() {
   document.title = S.settings.title;
   $('#brandTitle').textContent = S.settings.title;
 }
-function sw(t) { return `<span class="chip" style="--c:${t.color};--ink:${inkFor(t.color)}"><span class="dot"></span>${esc(t.name)}</span>`; }
+function sw(t) { return `<span class="chip" style="--c:${t.color};--ink:${inkFor(t.color)}"><span class="dot"></span>${esc(t.name)}${t.members.length ? `<small class="cnt">${t.members.length}名</small>` : ''}</span>`; }
 function renderTitle() {
   applyTitle();
   const tp = S.settings.title.split(/[　]+/);
@@ -761,19 +769,19 @@ function award() {
 /* 回答者の指名（ルーレット） */
 const used = new Set(); // 一度指名された人は、全員が当たるまで選ばれにくくする
 function pool(team, group) {
-  const gs = group === 'all' ? ['low', 'high', 'jh'] : [group];
-  const names = gs.flatMap((g) => (team.members[g] || []).map((n) => ({ team, name: n, g })));
-  return names.length ? names : [{ team, name: null, g: group }];
+  const list = team.members.map((m, i) => ({ team, name: m.name, g: m.g, no: i + 1 }))
+    .filter((c) => group === 'all' || c.g === group);
+  return list.length ? list : [{ team, name: null, g: group, no: 0 }];
 }
 function pickFair(cands) {
-  const key = (c) => `${c.team.id}:${c.name}`;
+  const key = (c) => `${c.team.id}:${c.no}`;
   let free = cands.filter((c) => !used.has(key(c)));
   if (!free.length) { cands.forEach((c) => used.delete(key(c))); free = cands; }
   const c = free[Math.floor(Math.random() * free.length)];
   used.add(key(c)); return c;
 }
 function label(c) {
-  if (c.name) return `${esc(c.name)}<small>（${GROUPS[c.g] || ''}）</small>`;
+  if (c.no) return `${c.name ? esc(c.name) : c.no + '番の人'}<small>（${GROUPS[c.g] || ''}）</small>`;
   return c.g === 'all' ? 'だれか1人' : `${GROUPS[c.g]}のだれか1人`;
 }
 function openNominate() {
@@ -1134,13 +1142,48 @@ function renderTeams() {
       <input type="number" value="${t.score}" data-f="score" aria-label="得点">
       <button type="button" class="btn sm" data-act="del" ${S.teams.length <= 1 ? 'disabled' : ''}>削除</button>
       <div class="members">
-        ${Object.entries(GROUPS).map(([g, gl]) => `<label class="field">${gl}のメンバー<input type="text" data-m="${g}" value="${esc(t.members[g].join('、'))}" placeholder="例：たろう、はなこ"></label>`).join('')}
+        <div class="mem-head">
+          <label class="inline">人数
+            <select data-size aria-label="${esc(t.name)}の人数">${Array.from({ length: MAX_MEMBERS + 1 }, (_, n) => `<option value="${n}"${n === t.members.length ? ' selected' : ''}>${n ? n + '名' : '登録しない'}</option>`).join('')}</select>
+          </label>
+          <span class="mem-sum">${memberSummary(t)}</span>
+        </div>
+        <ol class="mem-list">
+          ${t.members.map((m, k) => `<li data-k="${k}">
+            <span class="mem-no">${k + 1}</span>
+            <input type="text" data-mn value="${esc(m.name)}" placeholder="名前（空欄なら「${k + 1}番の人」）" aria-label="${k + 1}番の名前">
+            <select data-mg aria-label="${k + 1}番の区分">${Object.entries(GROUPS).map(([g, gl]) => `<option value="${g}"${g === m.g ? ' selected' : ''}>${gl}</option>`).join('')}</select>
+          </li>`).join('')}
+        </ol>
       </div>
     </div>`).join('');
 }
+function memberSummary(t) {
+  if (!t.members.length) return '指名は「低学年のだれか1人」のように表示されます';
+  const c = Object.keys(GROUPS).map((g) => `${GROUPS[g]} ${t.members.filter((m) => m.g === g).length}名`);
+  return `${t.members.length}名（${c.join('・')}）`;
+}
+function teamOf(el) { return S.teams[+el.closest('.team-row').dataset.i]; }
+$('#teamList').addEventListener('change', (e) => {
+  const el = e.target;
+  if (el.matches('[data-size]')) {
+    const t = teamOf(el), n = Math.min(MAX_MEMBERS, Math.max(0, +el.value));
+    const lastG = t.members.length ? t.members[t.members.length - 1].g : 'low';
+    while (t.members.length < n) t.members.push({ name: '', g: lastG });
+    if (t.members.length > n) {
+      const cut = t.members.slice(n).filter((m) => m.name).length;
+      if (cut && !confirm(`名前が入っている${cut}名が消えます。よろしいですか？`)) { el.value = t.members.length; return; }
+      t.members.length = n;
+    }
+    used.clear(); save(); renderTeams();
+  } else if (el.matches('[data-mg]')) {
+    const t = teamOf(el); t.members[+el.closest('li').dataset.k].g = el.value; used.clear(); save();
+    el.closest('.members').querySelector('.mem-sum').textContent = memberSummary(t);
+  }
+});
 $('#teamList').addEventListener('input', (e) => {
-  if (e.target.dataset.m) {
-    S.teams[+e.target.closest('.team-row').dataset.i].members[e.target.dataset.m] = names(e.target.value); save(); return;
+  if (e.target.matches('[data-mn]')) {
+    teamOf(e.target).members[+e.target.closest('li').dataset.k].name = e.target.value.trim(); save(); return;
   }
   const f = e.target.dataset.f; if (!f) return;
   const t = S.teams[+e.target.closest('.team-row').dataset.i];

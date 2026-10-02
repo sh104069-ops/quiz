@@ -235,7 +235,7 @@ h2{font-family:var(--mincho);font-size:clamp(1.7rem,3.6vw,2.7rem);margin:0;lette
 .qi-act{display:flex;gap:.25rem}
 .switch{width:1.3rem;height:1.3rem;accent-color:var(--kin)}
 
-.team-list{display:flex;flex-direction:column;gap:.5rem;max-width:720px}
+.team-list{display:flex;flex-direction:column;gap:.7rem;max-width:900px}
 .team-row{display:grid;grid-template-columns:3rem 1fr 7rem auto;row-gap:.5rem;gap:.6rem;align-items:center;
   background:rgba(255,255,255,.05);border:1px solid var(--ai-line);border-radius:8px;padding:.5rem .7rem}
 .team-row input[type=color]{width:3rem;height:2.4rem;padding:0;border:none;background:none;cursor:pointer}
@@ -334,9 +334,16 @@ button.pill{font:inherit;color:inherit;cursor:pointer}
 .rl-team{font-size:.6em;opacity:.85}
 .roulette.done .rl-row{animation:pop .4s cubic-bezier(.2,1.6,.4,1);background:var(--c);color:var(--ink)}
 .rl-tap{margin:0;font-size:.85rem;opacity:.6}
-.team-row .members{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
-.team-row .members .field{font-size:.8rem;font-weight:700}
-@media (max-width:760px){.team-row .members{grid-template-columns:1fr}}
+.team-row .members{grid-column:1/-1;display:flex;flex-direction:column;gap:.5rem;border-top:1px dashed var(--ai-line);padding-top:.5rem}
+.mem-head{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;font-weight:700}
+.mem-head select{width:auto}
+.mem-sum{font-size:.85rem;opacity:.75}
+.mem-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.35rem .8rem}
+.mem-list li{display:grid;grid-template-columns:1.8em minmax(0,1fr) 6.5em;gap:.35rem;align-items:center}
+.mem-no{text-align:right;font-variant-numeric:tabular-nums;opacity:.7;font-weight:800}
+.mem-list select{padding:.45rem .3rem}
+.chip .cnt{font-size:.7em;opacity:.75;font-weight:700}
+@media (max-width:760px){.mem-list{grid-template-columns:1fr}}
 
 /* ---------- 小さい画面 ---------- */
 @media (max-width:760px){
