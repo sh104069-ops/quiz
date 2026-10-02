@@ -45,7 +45,7 @@
       <button type="button" class="btn big" id="btnResume">続きから</button>
     </div>
     <div class="t-teams" id="tTeams"></div>
-    <p class="t-help">操作キー：スペース＝カウント開始／停止、Enter＝正解発表・次へ、←→＝前後の問題、1〜8＝正解チームの選択</p>
+    <p class="t-help">操作キー：スペース＝カウント開始／停止、Enter＝正解発表・次へ、←→＝前後の問題、1〜8＝チームの選択（早押しの解答権・答えた順・正解）、N＝指名、H＝ヒント、早押しの判定はO（正解）／X（お手つき）</p>
   </section>
 
   <!-- 問題 -->
@@ -56,11 +56,14 @@
         <div class="q-meta">
           <span class="pill" id="qCat"></span>
           <span class="pill" id="qLevel"></span>
+          <span class="pill" id="qTarget"></span>
           <span class="pill" id="qType"></span>
           <span class="pill pts" id="qPts"></span>
+          <button type="button" class="pill mode" id="qMode" title="タップで得点方式を切りかえ"></button>
           <span class="q-count" id="qCount"></span>
           <span class="q-timer" id="timerNum" aria-live="off"></span>
         </div>
+        <div class="nominee hidden" id="nominee" aria-live="polite"></div>
         <div class="q-text" id="qText"></div>
         <div class="music hidden" id="musicBar">
           <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -79,8 +82,12 @@
       </div>
       <div class="controls">
         <button type="button" class="btn" id="btnPrev">◀ 前へ</button>
+        <button type="button" class="btn" id="btnNominate">🎯 指名</button>
+        <button type="button" class="btn" id="btnHint">💡 ヒント</button>
         <button type="button" class="btn gold" id="btnTimer">⏱ カウント開始</button>
         <button type="button" class="btn primary" id="btnReveal">🥁 正解発表</button>
+        <button type="button" class="btn big ok hidden" id="btnBuzzOk">⭕ 正解</button>
+        <button type="button" class="btn big ng hidden" id="btnBuzzNg">❌ お手つき</button>
         <button type="button" class="btn primary hidden" id="btnAward">次の問題へ</button>
         <button type="button" class="btn" id="btnNext">次へ ▶</button>
       </div>
@@ -145,6 +152,7 @@
         <button type="button" class="btn primary" id="btnAddTeam">＋ チームを追加</button>
         <button type="button" class="btn ghost" id="btnResetScore">得点をすべて0にする</button>
       </div>
+      <p class="note">メンバーの名前を入れておくと「🎯 指名」で名前が出ます（空欄なら「低学年のだれか1人」のように表示）。</p>
       <div class="team-list" id="teamList"></div>
     </div>
 
@@ -154,6 +162,8 @@
         <label class="field">サブタイトル<input type="text" id="setSub"></label>
         <label class="field">制限時間（秒）<input type="number" id="setTimer" min="3" max="120"></label>
         <label class="field check"><input type="checkbox" id="setSound"> 効果音を鳴らす</label>
+        <label class="field">早い順の得点（満点に対する％を早い順に）<input type="text" id="setRates" placeholder="100,70,50,30"></label>
+        <label class="field">早押しのお手つき減点（点・0で減点なし）<input type="number" id="setPenalty" min="0" max="100"></label>
         <label class="field check"><input type="checkbox" id="setAutoMusic"> カウント開始と同時に曲を流す（音源のある問題）</label>
         <label class="field check"><input type="checkbox" id="setBgm"> 考えタイムにBGMを流す（音源のない問題）</label>
       </div>
@@ -189,6 +199,22 @@
           </select>
         </label>
         <label class="field">得点<input type="number" id="fPts" min="0" max="1000"></label>
+        <label class="field">得点方式
+          <select id="fMode">
+            <option value="normal">通常（正解チームに同じ得点）</option>
+            <option value="speed">早い順に高得点</option>
+            <option value="buzz">早押し（解答権を出題者が指名）</option>
+          </select>
+        </label>
+        <label class="field">対象（指名するとき）
+          <select id="fTarget">
+            <option value="auto">難しさに合わせる（★低・★★高・★★★中）</option>
+            <option value="low">低学年</option>
+            <option value="high">高学年</option>
+            <option value="jh">中学生</option>
+            <option value="all">全員</option>
+          </select>
+        </label>
       </div>
       <label class="field">問題文<textarea id="fText" rows="3" required></textarea></label>
 
@@ -226,6 +252,7 @@
         </div>
         <p class="hint">イントロクイズなら「0秒から10秒」、サビクイズならサビの位置から流すと盛り上がります。</p>
       </fieldset>
+      <label class="field">ヒント（1行に1つ・最大5つ。「ヒント」ボタンで1つずつ表示）<textarea id="fHints" rows="3"></textarea></label>
       <label class="field">出題者メモ（クイズ画面には表示されません）<input type="text" id="fMemo"></label>
       <label class="field">解説（正解発表のあとに表示・空欄可）<textarea id="fExplain" rows="2"></textarea></label>
       <div class="form-grid">

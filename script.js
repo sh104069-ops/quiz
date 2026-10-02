@@ -8,8 +8,10 @@ const LETTERS = ['A', 'B', 'C', 'D'];
 const LEVEL_LABEL = { 1: '★ やさしい', 2: '★★ ふつう', 3: '★★★ むずかしい' };
 const TYPE_LABEL = { choice: '選択', ox: '○✕', free: '口頭・記述' };
 
-const DATA_VER = 2;
-const DEFAULT_SETTINGS = { title: '致道館　レクリエーションクイズ大会', subtitle: '剣道合宿', timer: 15, sound: true, bgm: true, autoMusic: true };
+const DATA_VER = 3;
+const DEFAULT_SETTINGS = { title: '致道館　レクリエーションクイズ大会', subtitle: '剣道合宿', timer: 15, sound: true, bgm: true, autoMusic: true, speedRates: '100,70,50,30', penalty: 0 };
+const GROUPS = { low: '低学年', high: '高学年', jh: '中学生' };
+const LEVEL_GROUP = { 1: 'low', 2: 'high', 3: 'jh' };
 const DEFAULT_TEAMS = [
   { name: '赤チーム', color: '#d8342c' },
   { name: '白チーム', color: '#f3efe4' },
@@ -18,8 +20,8 @@ const DEFAULT_TEAMS = [
 ];
 
 // Q(形式, ジャンル, 難しさ, 得点, 問題文, 選択肢, 正解, 解説, 要確認)
-const Q = (type, cat, level, pts, text, choices, answer, explain = '', check = false, memo = '') =>
-  ({ type, cat, level, pts, text, choices, answer, explain, check, memo });
+const Q = (type, cat, level, pts, text, choices, answer, explain = '', check = false, memo = '', extra = {}) =>
+  ({ type, cat, level, pts, text, choices, answer, explain, check, memo, ...extra });
 
 const DEFAULT_QUESTIONS = [
   // 道場・先生
@@ -77,17 +79,17 @@ const DEFAULT_QUESTIONS = [
 // 音楽クイズ（♪の問題は、出題者が用意した音源を「準備・設定」で登録すると曲を流しながら出題できます）
 const MUSIC_QUESTIONS = [
   // 最新の曲（イントロクイズ）
-  Q('choice', '音楽（最近の曲）', 1, 10, '♪ 流れている曲のタイトルは？', ['ライラック', 'ケセラセラ', '青と夏', 'インフェルノ'], 0, 'Mrs. GREEN APPLE「ライラック」（2024年）。アニメ『忘却バッテリー』の主題歌です。', true, '登録する音源：Mrs. GREEN APPLE「ライラック」'),
-  Q('choice', '音楽（最近の曲）', 1, 10, '♪ 流れている曲を歌っているのは？', ['Creepy Nuts', 'YOASOBI', 'King Gnu', 'Vaundy'], 0, 'Creepy Nuts「Bling-Bang-Bang-Born」（2024年）。アニメ『マッシュル』の主題歌です。', true, '登録する音源：Creepy Nuts「Bling-Bang-Bang-Born」'),
-  Q('choice', '音楽（最近の曲）', 1, 10, '♪ 流れている曲のタイトルは？', ['アイドル', '夜に駆ける', '群青', '怪物'], 0, 'YOASOBI「アイドル」（2023年）。アニメ『【推しの子】』の主題歌です。', true, '登録する音源：YOASOBI「アイドル」'),
+  Q('choice', '音楽（最近の曲）', 1, 10, '♪ 流れている曲のタイトルは？', ['ライラック', 'ケセラセラ', '青と夏', 'インフェルノ'], 0, 'Mrs. GREEN APPLE「ライラック」（2024年）。アニメ『忘却バッテリー』の主題歌です。', true, '登録する音源：Mrs. GREEN APPLE「ライラック」', { mode: 'buzz' }),
+  Q('choice', '音楽（最近の曲）', 1, 10, '♪ 流れている曲を歌っているのは？', ['Creepy Nuts', 'YOASOBI', 'King Gnu', 'Vaundy'], 0, 'Creepy Nuts「Bling-Bang-Bang-Born」（2024年）。アニメ『マッシュル』の主題歌です。', true, '登録する音源：Creepy Nuts「Bling-Bang-Bang-Born」', { mode: 'buzz' }),
+  Q('choice', '音楽（最近の曲）', 1, 10, '♪ 流れている曲のタイトルは？', ['アイドル', '夜に駆ける', '群青', '怪物'], 0, 'YOASOBI「アイドル」（2023年）。アニメ『【推しの子】』の主題歌です。', true, '登録する音源：YOASOBI「アイドル」', { mode: 'buzz' }),
   // 2000年代（イントロクイズ）
-  Q('choice', '音楽（2000年代）', 2, 10, '♪ 流れている曲を歌っているのは？', ['SMAP', '嵐', 'TOKIO', 'V6'], 0, 'SMAP「世界に一つだけの花」（2003年）。', true, '登録する音源：SMAP「世界に一つだけの花」'),
-  Q('choice', '音楽（2000年代）', 2, 10, '♪ 流れている曲のタイトルは？', ['キセキ', '愛唄', '遥か', '刹那'], 0, 'GReeeeN「キセキ」（2008年）。ドラマ『ROOKIES』の主題歌です。選択肢はすべてGReeeeNの曲でした。', true, '登録する音源：GReeeeN「キセキ」'),
-  Q('choice', '音楽（2000年代）', 2, 10, '♪ 流れている曲を歌っているのは？', ['一青窈', '平井堅', '大塚愛', '中島美嘉'], 0, '一青窈「ハナミズキ」（2004年）。', true, '登録する音源：一青窈「ハナミズキ」'),
+  Q('choice', '音楽（2000年代）', 2, 10, '♪ 流れている曲を歌っているのは？', ['SMAP', '嵐', 'TOKIO', 'V6'], 0, 'SMAP「世界に一つだけの花」（2003年）。', true, '登録する音源：SMAP「世界に一つだけの花」', { mode: 'buzz' }),
+  Q('choice', '音楽（2000年代）', 2, 10, '♪ 流れている曲のタイトルは？', ['キセキ', '愛唄', '遥か', '刹那'], 0, 'GReeeeN「キセキ」（2008年）。ドラマ『ROOKIES』の主題歌です。選択肢はすべてGReeeeNの曲でした。', true, '登録する音源：GReeeeN「キセキ」', { mode: 'buzz' }),
+  Q('choice', '音楽（2000年代）', 2, 10, '♪ 流れている曲を歌っているのは？', ['一青窈', '平井堅', '大塚愛', '中島美嘉'], 0, '一青窈「ハナミズキ」（2004年）。', true, '登録する音源：一青窈「ハナミズキ」', { mode: 'buzz' }),
   // 90年代（イントロクイズ）
-  Q('choice', '音楽（90年代）', 3, 20, '♪ 流れている曲のタイトルは？', ['夜空ノムコウ', 'らいおんハート', 'SHAKE', 'ダイナマイト'], 0, 'SMAP「夜空ノムコウ」（1998年）。選択肢はすべてSMAPの曲でした。', true, '登録する音源：SMAP「夜空ノムコウ」'),
-  Q('choice', '音楽（90年代）', 3, 20, '♪ 流れている曲を歌っているのは？', ['DREAMS COME TRUE', 'globe', 'TRF', 'Every Little Thing'], 0, 'DREAMS COME TRUE「LOVE LOVE LOVE」（1995年）。', true, '登録する音源：DREAMS COME TRUE「LOVE LOVE LOVE」'),
-  Q('choice', '音楽（90年代）', 3, 20, '♪ 流れている曲のタイトルは？', ['それが大事', '愛は勝つ', 'どんなときも。', '負けないで'], 0, '大事MANブラザーズバンド「それが大事」（1991年）。', true, '登録する音源：大事MANブラザーズバンド「それが大事」'),
+  Q('choice', '音楽（90年代）', 3, 20, '♪ 流れている曲のタイトルは？', ['夜空ノムコウ', 'らいおんハート', 'SHAKE', 'ダイナマイト'], 0, 'SMAP「夜空ノムコウ」（1998年）。選択肢はすべてSMAPの曲でした。', true, '登録する音源：SMAP「夜空ノムコウ」', { mode: 'buzz' }),
+  Q('choice', '音楽（90年代）', 3, 20, '♪ 流れている曲を歌っているのは？', ['DREAMS COME TRUE', 'globe', 'TRF', 'Every Little Thing'], 0, 'DREAMS COME TRUE「LOVE LOVE LOVE」（1995年）。', true, '登録する音源：DREAMS COME TRUE「LOVE LOVE LOVE」', { mode: 'buzz' }),
+  Q('choice', '音楽（90年代）', 3, 20, '♪ 流れている曲のタイトルは？', ['それが大事', '愛は勝つ', 'どんなときも。', '負けないで'], 0, '大事MANブラザーズバンド「それが大事」（1991年）。', true, '登録する音源：大事MANブラザーズバンド「それが大事」', { mode: 'buzz' }),
   // 音楽の知識（音源なしでOK）
   Q('ox', '音楽', 1, 10, '「Lemon」を歌っているのは米津玄師である。', [], 'o', '米津玄師「Lemon」（2018年）。ドラマ『アンナチュラル』の主題歌です。'),
   Q('choice', '音楽', 1, 10, '「マリーゴールド」を歌っている歌手は？', ['あいみょん', 'aiko', 'miwa', 'YUI'], 0),
@@ -99,13 +101,54 @@ const MUSIC_QUESTIONS = [
   Q('ox', '音楽', 3, 20, '宇多田ヒカルのアルバム「First Love」は1999年に発売された。', [], 'o'),
   Q('choice', '音楽', 3, 20, '安室奈美恵の出身地は？', ['沖縄県', '北海道', '大阪府', '福岡県'], 0),
 ];
-// ファイナルの直前に音楽クイズを入れる
-function withMusic(qs) {
+
+// ポケモン・ちいかわ・すみっコぐらし・アイドル（2026年10月追加）
+const B = { mode: 'buzz' }, SP = { mode: 'speed' };
+const POP_QUESTIONS = [
+  // ポケモン
+  Q('choice', 'ポケモン', 1, 10, 'ピカチュウのタイプは？', ['でんき', 'ほのお', 'みず', 'くさ'], 0, '', false, '', SP),
+  Q('choice', 'ポケモン', 1, 10, 'ピカチュウが進化すると何になる？', ['ライチュウ', 'ピチュー', 'パチリス', 'エモンガ'], 0, 'ピチュー → ピカチュウ → ライチュウ と進化します。', false, '', SP),
+  Q('choice', 'ポケモン', 1, 10, 'ヒントでわかるかな？このポケモンはだれ？', ['カビゴン', 'ヤドン', 'ラッキー', 'ゴンベ'], 0, 'ゴンベはカビゴンの進化前のポケモンです。', false, '', { mode: 'buzz', hints: ['ねむるのが大好き', 'とても大きくて重い', '道の真ん中でねて、通せんぼしていることも'] }),
+  Q('choice', 'ポケモン', 2, 10, 'ヒトカゲが最後に進化するポケモンは？', ['リザードン', 'カメックス', 'フシギバナ', 'ギャラドス'], 0, 'ヒトカゲ → リザード → リザードン。', false, '', SP),
+  Q('choice', 'ポケモン', 2, 10, '「みず」タイプのポケモンに強いタイプは？', ['くさ', 'ほのお', 'じめん', 'いわ'], 0, 'みずタイプには、くさタイプ・でんきタイプのわざが「こうかはばつぐん」です。', false, '', SP),
+  Q('ox', 'ポケモン', 2, 10, 'ポケモン図鑑の1番（No.0001）はフシギダネである。', [], 'o'),
+  Q('choice', 'ポケモン', 3, 20, 'イーブイの進化形ではないポケモンは？', ['ライチュウ', 'ブースター', 'シャワーズ', 'サンダース'], 0, 'イーブイはブースター（ほのお）、シャワーズ（みず）、サンダース（でんき）などに進化します。'),
+  // ちいかわ
+  Q('choice', 'ちいかわ', 1, 10, 'キャラクター当てクイズ！このキャラクターはだれ？', ['ハチワレ', 'ちいかわ', 'うさぎ', 'モモンガ'], 0, '', false, '', { mode: 'buzz', hints: ['ちいかわのなかよし', '顔の上の毛が、左右で色がちがう', '口ぐせは「なんとかなれーッ！」'] }),
+  Q('choice', 'ちいかわ', 1, 10, '「ウラ！」「ヤハ！」とさけぶ、元気いっぱいのキャラクターは？', ['うさぎ', 'ハチワレ', 'ちいかわ', 'くりまんじゅう'], 0, '', false, '', SP),
+  Q('choice', 'ちいかわ', 2, 10, 'ちいかわたちが合格をめざしてがんばる検定は？', ['草むしり検定', '漢字検定', '英語検定', 'そろばん検定'], 0),
+  Q('choice', 'ちいかわ', 2, 10, 'ハチワレが住んでいる場所は？', ['どうくつ', '木の上', '海の中', 'お城'], 0),
+  Q('ox', 'ちいかわ', 3, 20, '「ちいかわ」の作者は、ナガノさんである。', [], 'o'),
+  // すみっコぐらし
+  Q('choice', 'すみっコぐらし', 1, 10, 'キャラクター当てクイズ！このすみっコはだれ？', ['しろくま', 'ぺんぎん？', 'ねこ', 'とかげ'], 0, '', false, '', { mode: 'buzz', hints: ['北からにげてきた', 'とってもさむがり', 'あったかいお茶をすみっこで飲むのが好き'] }),
+  Q('choice', 'すみっコぐらし', 1, 10, '「自分はぺんぎんなのかな？」と自信がないすみっコの名前は？', ['ぺんぎん？', 'しろくま', 'とかげ', 'ねこ'], 0, '', false, '', SP),
+  Q('choice', 'すみっコぐらし', 2, 10, 'キャラクター当てクイズ！このすみっコはだれ？', ['とんかつ', 'えびふらいのしっぽ', 'たぴおか', 'ざっそう'], 0, '', false, '', { mode: 'buzz', hints: ['すみっこにいると落ち着く', '食べ残された「はじっこ」', 'あぶら99%、にく1%'] }),
+  Q('choice', 'すみっコぐらし', 2, 10, '実は恐竜の生き残りで、そのことをかくしているすみっコは？', ['とかげ', 'ぺんぎん？', 'ねこ', 'しろくま'], 0),
+  Q('ox', 'すみっコぐらし', 3, 20, '「ふろしき」は、しろくまの荷物である。', [], 'o'),
+  Q('choice', 'すみっコぐらし', 3, 20, 'すみっコぐらしを生み出した会社は？', ['サンエックス', 'サンリオ', 'バンダイ', '任天堂'], 0),
+  // Snow Man・SixTONES
+  Q('choice', 'アイドル', 1, 10, 'Snow Manのメンバーは何人？', ['9人', '6人', '5人', '7人'], 0, '', false, '', SP),
+  Q('choice', 'アイドル', 1, 10, 'SixTONES（ストーンズ）のメンバーは何人？', ['6人', '9人', '5人', '4人'], 0, '', false, '', SP),
+  Q('ox', 'アイドル', 2, 10, 'Snow ManとSixTONESは、2020年に同じ日にCDデビューした。', [], 'o', '2020年1月22日、2組同時にデビューしました。'),
+  Q('choice', 'アイドル', 2, 10, 'Snow Manのデビュー曲は？', ['D.D.', 'Imitation Rain', 'Pretender', '夜に駆ける'], 0, 'SixTONESのデビュー曲は「Imitation Rain」です。'),
+  Q('choice', 'アイドル', 3, 20, '気象予報士の資格を持っているSnow Manのメンバーは？', ['阿部亮平', '目黒蓮', 'ラウール', '佐久間大介'], 0),
+  Q('choice', 'アイドル', 3, 20, '映画『すずめの戸締まり』で宗像草太の声を担当したSixTONESのメンバーは？', ['松村北斗', 'ジェシー', '京本大我', '田中樹'], 0),
+  // 韓流アイドル
+  Q('choice', '韓流アイドル', 1, 10, 'BTSはどこの国のグループ？', ['韓国', '日本', '中国', 'アメリカ'], 0, '', false, '', SP),
+  Q('choice', '韓流アイドル', 2, 10, '「Dynamite」「Butter」を歌ったグループは？', ['BTS', 'SEVENTEEN', 'NCT', 'BIGBANG'], 0),
+  Q('ox', '韓流アイドル', 2, 10, 'BLACKPINKは4人組のグループである。', [], 'o'),
+  Q('choice', '韓流アイドル', 2, 10, 'TWICEのメンバーで、日本出身なのは何人？', ['3人', '1人', '5人', '0人'], 0, 'モモ・サナ・ミナの3人です。'),
+  Q('choice', '韓流アイドル', 3, 20, 'NiziUが生まれたオーディション番組の名前は？', ['Nizi Project', 'PRODUCE 101', 'I-LAND', 'BOYS PLANET'], 0),
+  Q('choice', '韓流アイドル', 3, 20, 'LE SSERAFIMの日本人メンバーの組み合わせは？', ['宮脇咲良・中村一葉', 'モモ・サナ', 'マヤ・リマ', 'ミナ・ジヒョ'], 0),
+];
+// ファイナルの直前に追加の問題を入れる
+function insertBeforeFinal(qs, add) {
   const out = [...qs], fi = out.findIndex((q) => q.cat === 'ファイナル');
-  out.splice(fi < 0 ? out.length : fi, 0, ...MUSIC_QUESTIONS.map(normQ));
+  out.splice(fi < 0 ? out.length : fi, 0, ...add.map(normQ));
   return out;
 }
-const defaultQuestions = () => withMusic(DEFAULT_QUESTIONS.map(normQ));
+const withMusic = (qs) => insertBeforeFinal(qs, MUSIC_QUESTIONS);
+const defaultQuestions = () => insertBeforeFinal(withMusic(DEFAULT_QUESTIONS.map(normQ)), POP_QUESTIONS);
 
 /* ---------- 状態 ---------- */
 const $ = (s) => document.querySelector(s);
@@ -132,9 +175,16 @@ function normQ(q) {
     choices, answer, explain: String(q.explain || ''), check: !!q.check, memo: String(q.memo || ''),
     audio: q.audio && q.audio.key ? { key: String(q.audio.key), name: String(q.audio.name || '音源') } : null,
     aStart: Math.max(0, parseFloat(q.aStart) || 0), aLen: Math.max(0, parseFloat(q.aLen) || 0),
+    mode: ['normal', 'speed', 'buzz'].includes(q.mode) ? q.mode : 'normal',
+    target: ['auto', 'low', 'high', 'jh', 'all'].includes(q.target) ? q.target : 'auto',
+    hints: Array.isArray(q.hints) ? q.hints.map(String).map((x) => x.trim()).filter(Boolean).slice(0, 5) : [],
   };
 }
-const normT = (t) => ({ id: t.id || uid(), name: String(t.name || 'チーム'), color: /^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#888888', score: parseInt(t.score, 10) || 0 });
+const names = (v) => (Array.isArray(v) ? v : String(v || '').split(/[、,，\s]+/)).map((x) => String(x).trim()).filter(Boolean);
+const normT = (t) => ({
+  id: t.id || uid(), name: String(t.name || 'チーム'), color: /^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#888888', score: parseInt(t.score, 10) || 0,
+  members: { low: names(t.members && t.members.low), high: names(t.members && t.members.high), jh: names(t.members && t.members.jh) },
+});
 
 function factory() {
   return {
@@ -157,6 +207,10 @@ function load() {
         if (st.settings.title === '剣道合宿 クイズ大会') st.settings.title = DEFAULT_SETTINGS.title;
         if (st.settings.subtitle === '致道館 合宿レクリエーション') st.settings.subtitle = DEFAULT_SETTINGS.subtitle;
         st.questions = withMusic(st.questions);
+      }
+      if ((d.ver || 1) < 3) { // 早押し・ポケモンなどの追加
+        st.questions.forEach((q) => { if (/^登録する音源/.test(q.memo) && q.mode === 'normal') q.mode = 'buzz'; });
+        st.questions = insertBeforeFinal(st.questions, POP_QUESTIONS);
       }
       return st;
     }
@@ -219,6 +273,8 @@ const SFX = {
   cymbal: () => noise(0.9, 0.3, 0, 4000),
   pinpon: () => { tone(1319, 0.3, 'sine', 0.25); tone(1047, 0.6, 'sine', 0.25, 0.25); },
   point: () => { tone(1568, 0.08, 'square', 0.08); tone(2093, 0.14, 'square', 0.08, 0.07); },
+  buzz: () => { tone(1175, 0.12, 'square', 0.22); tone(1568, 0.35, 'square', 0.22, 0.1); },
+  wrong: () => { tone(196, 0.5, 'sawtooth', 0.2); tone(147, 0.6, 'sawtooth', 0.18, 0.12); },
   start: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, 'square', 0.1, i * 0.1)),
   fanfare: () => {
     let t = 0;
@@ -347,7 +403,7 @@ function splash(html, ms) {
   clearTimeout(spT); if (ms) spT = setTimeout(hideSplash, ms);
 }
 function hideSplash() { $('#splash').classList.remove('show'); }
-$('#splash').addEventListener('click', hideSplash);
+$('#splash').addEventListener('click', (e) => { if (e.target.closest('.nom-panel') || $('#splash .roulette:not(.done)')) return; hideSplash(); });
 
 function confetti() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -423,6 +479,24 @@ $('#btnFull').addEventListener('click', () => {
 
 /* ---------- 問題画面 ---------- */
 let tInt = null, tLeft = 0, tTotal = 15, lastSec = 0;
+let order = [];            // 早い順：答えた順番（チームID）
+let lockout = new Set();   // 早押し：お手つきのチーム
+let buzzTeam = null, buzzWinner = null, buzzWasCounting = false;
+let hintShown = 0;
+const MODE_LABEL = { normal: '通常', speed: '早い順に高得点', buzz: '早押し' };
+const MODE_NEXT = { normal: 'speed', speed: 'buzz', buzz: 'normal' };
+const qGroup = (q) => (q.target && q.target !== 'auto' ? q.target : LEVEL_GROUP[q.level]);
+function rates() {
+  const r = String(S.settings.speedRates || '').split(/[,、，\s]+/).map((x) => parseFloat(x)).filter((x) => x >= 0);
+  return r.length ? r : [100, 70, 50, 30];
+}
+function speedGains(q, ids) {
+  const r = rates();
+  const ordered = [...order.filter((id) => ids.has(id)), ...S.teams.map((t) => t.id).filter((id) => ids.has(id) && !order.includes(id))];
+  const g = new Map();
+  ordered.forEach((id, i) => g.set(id, Math.round(q.pts * r[Math.min(i, r.length - 1)] / 100)));
+  return g;
+}
 
 function showQuestion(i, keepPhase) {
   const L = list();
@@ -438,7 +512,8 @@ function showQuestion(i, keepPhase) {
   if (same) { renderStrip(); updateControls(); return; }
   stopTimer();
   const q = L[i];
-  phase = 'ready'; selected = new Set();
+  phase = 'ready'; selected = new Set(); order = []; lockout = new Set();
+  buzzTeam = null; buzzWinner = null; hintShown = 0;
   const isLast = i === L.length - 1;
 
   const plaque = $('#plaque');
@@ -449,12 +524,17 @@ function showQuestion(i, keepPhase) {
 
   $('#qCat').textContent = q.cat;
   $('#qLevel').textContent = LEVEL_LABEL[q.level];
+  $('#qTarget').textContent = `対象：${q.target === 'all' ? '全員' : GROUPS[qGroup(q)]}`;
   $('#qType').textContent = TYPE_LABEL[q.type];
   $('#qPts').textContent = `${q.pts}点`;
+  renderModePill(q);
   $('#qCount').textContent = `${i + 1} / ${L.length}`;
+  $('#nominee').classList.add('hidden'); $('#nominee').innerHTML = '';
 
   const qt = $('#qText');
-  qt.innerHTML = fmt(q.text); qt.dataset.qid = q.id;
+  qt.innerHTML = fmt(q.text) + (q.hints.length
+    ? `<ol class="hints">${q.hints.map((h, k) => `<li class="hidden"><b>ヒント${'①②③④⑤'[k]}</b>${fmt(h)}</li>`).join('')}</ol>` : '');
+  qt.dataset.qid = q.id;
   qt.classList.remove('enter'); void qt.offsetWidth; qt.classList.add('enter');
 
   const A = $('#answers');
@@ -473,6 +553,23 @@ function showQuestion(i, keepPhase) {
   tLeft = tTotal; drawTimer();
   renderStrip(); updateControls();
 }
+function renderModePill(q) {
+  const m = $('#qMode');
+  m.textContent = (q.mode === 'buzz' ? '🔔 ' : q.mode === 'speed' ? '⚡ ' : '') + MODE_LABEL[q.mode];
+  m.className = 'pill mode m-' + q.mode;
+}
+$('#qMode').addEventListener('click', () => {
+  const q = cur(); if (!q || phase === 'revealing' || phase === 'revealed' || phase === 'buzzed') return;
+  q.mode = MODE_NEXT[q.mode]; save(); order = []; lockout = new Set();
+  renderModePill(q); renderStrip(); updateControls();
+  toast(`得点方式を「${MODE_LABEL[q.mode]}」にしました`);
+});
+function showHint() {
+  const q = cur(); if (!q || hintShown >= q.hints.length) return;
+  const li = $$('#qText .hints li')[hintShown];
+  if (li) { li.classList.remove('hidden'); li.classList.add('pop'); }
+  hintShown++; SFX.point(); updateControls();
+}
 
 function drawTimer() {
   $('#timerNum').textContent = Math.ceil(tLeft);
@@ -484,7 +581,7 @@ function drawTimer() {
 function stopTimer() { clearInterval(tInt); tInt = null; }
 function pauseTimer() { if (phase === 'counting') { stopTimer(); stopAllMusic(true); phase = 'paused'; updateControls(); } }
 function toggleTimer() {
-  if (phase === 'revealing' || phase === 'revealed') return;
+  if (phase === 'revealing' || phase === 'revealed' || phase === 'buzzed') return;
   if (phase === 'counting') { pauseTimer(); return; }
   if (phase === 'locked' || tLeft <= 0) tLeft = tTotal;
   ac();
@@ -506,6 +603,37 @@ function toggleTimer() {
   }, 100);
 }
 
+/* 早押し（解答権は出題者がチームをタップして決める） */
+function buzzIn(id) {
+  const t = S.teams.find((x) => x.id === id); if (!t) return;
+  buzzWasCounting = phase === 'counting';
+  stopTimer(); stopAllMusic(false); stopBgm();
+  if (phase === 'counting') phase = 'paused';
+  phase = 'buzzed'; buzzTeam = id;
+  SFX.buzz();
+  splash(`<div class="sp-buzz" style="--c:${t.color};--ink:${inkFor(t.color)}"><small>解答権</small>${esc(t.name)}</div>`, 1500);
+  renderStrip(); updateControls();
+}
+function buzzJudge(ok) {
+  const q = cur(); if (!q || phase !== 'buzzed') return;
+  const t = S.teams.find((x) => x.id === buzzTeam);
+  if (ok) {
+    t.score += q.pts; awarded.add(q.id); save();
+    buzzWinner = buzzTeam; buzzTeam = null;
+    phase = 'paused'; reveal();
+    return;
+  }
+  SFX.wrong();
+  const pen = Math.max(0, parseInt(S.settings.penalty, 10) || 0);
+  if (pen) t.score -= pen;
+  lockout.add(buzzTeam); save();
+  splash(`<div class="sp-otetsuki">お手つき！${pen ? `<small>${esc(t.name)} −${pen}点</small>` : ''}</div>`, 1200);
+  buzzTeam = null; phase = 'paused';
+  renderStrip(); updateControls();
+  if (lockout.size >= S.teams.length) { toast('全チームお手つき！正解を発表しましょう'); return; }
+  if (buzzWasCounting) setTimeout(() => { if (phase === 'paused') toggleTimer(); }, 1250);
+}
+
 function answerSplash(q) {
   if (q.type === 'ox') return q.answer === 'o' ? '<div class="sp-o">○</div>' : '<div class="sp-x">✕</div>';
   if (q.type === 'choice') return `<div class="sp-choice"><span class="lt c${q.answer}">${LETTERS[q.answer]}</span><span>${fmt(q.choices[q.answer])}</span></div>`;
@@ -517,78 +645,189 @@ function answerText(q) {
   return fmt(q.answer);
 }
 function reveal() {
-  if (phase === 'revealing' || phase === 'revealed') return;
+  if (phase === 'revealing' || phase === 'revealed' || phase === 'buzzed') return;
   const q = cur(); if (!q) return;
   stopTimer(); stopAllMusic(true); phase = 'revealing'; updateControls();
-  splash('<div class="sp-lead">正解は…</div>');
-  SFX.drum(1400);
+  const winner = buzzWinner && S.teams.find((x) => x.id === buzzWinner);
+  splash(winner ? `<div class="sp-lead" style="animation:none">${esc(winner.name)}の答えは…</div>` : '<div class="sp-lead">正解は…</div>');
+  SFX.drum(winner ? 900 : 1400);
   setTimeout(() => {
     SFX.cymbal(); SFX.pinpon();
-    splash(answerSplash(q), 1900);
-    if (q.audio) setTimeout(() => { if (phase === 'revealed' && cur() === q) playQ(q); }, 1900); // 答え合わせでもう一度流す
+    splash(winner ? `<div>${answerSplash(q)}<div class="sp-win" style="--c:${winner.color};--ink:${inkFor(winner.color)}">${esc(winner.name)} 正解！ ＋${q.pts}点</div></div>` : answerSplash(q), 2100);
+    if (winner) setTimeout(() => SFX.fanfare(), 300);
+    if (q.audio) setTimeout(() => { if (phase === 'revealed' && cur() === q) playQ(q); }, 2100); // 答え合わせでもう一度流す
     $$('#answers .ans').forEach((el) => {
       if (q.type === 'free') { el.classList.add('correct'); el.innerHTML = `<span class="q-mark" style="font-size:clamp(1.8rem,5vw,3.6rem)">${fmt(q.answer)}</span>`; return; }
       const ok = String(el.dataset.k) === String(q.answer);
       el.classList.toggle('correct', ok); el.classList.toggle('dim', !ok);
     });
+    $$('#qText .hints li').forEach((li) => li.classList.remove('hidden'));
     const rb = $('#revealBox');
-    rb.innerHTML = `<b>正解</b>${answerText(q)}${q.explain ? `<p>${fmt(q.explain)}</p>` : ''}`;
+    rb.innerHTML = `${winner ? `<span class="win-tag" style="--c:${winner.color};--ink:${inkFor(winner.color)}">${esc(winner.name)} 正解 ＋${q.pts}点</span>` : ''}<b>正解</b>${answerText(q)}${q.explain ? `<p>${fmt(q.explain)}</p>` : ''}`;
     rb.classList.remove('hidden');
     setTimeout(() => rb.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 50);
     phase = 'revealed'; renderStrip(); updateControls();
-  }, 1450);
+    if (winner) {
+      const chip = $(`#chips .chip[data-id="${winner.id}"]`);
+      if (chip) { const f = document.createElement('span'); f.className = 'float'; f.textContent = `+${q.pts}`; chip.appendChild(f); }
+    }
+  }, winner ? 950 : 1450);
 }
 
+function stripMode() {
+  const q = cur(); if (!q) return 'none';
+  if (phase === 'revealing') return 'none';
+  if (phase === 'revealed') return q.mode === 'buzz' ? 'none' : 'judge';
+  if (q.mode === 'speed') return 'order';
+  if (q.mode === 'buzz') return phase === 'buzzed' ? 'none' : 'buzz';
+  return 'none';
+}
+const STRIP_HINT = {
+  judge: '正解したチームをタップしてください',
+  order: '⚡ 答えた（ボードを上げた）順にチームをタップ → 早いほど高得点',
+  buzz: '🔔 早押し：手を挙げた（ボタンを押した）チームをタップすると解答権',
+};
 function renderStrip() {
-  const judging = phase === 'revealed';
-  $('#strip').classList.toggle('judging', judging);
-  $('#stripHint').classList.toggle('hidden', !judging);
-  $('#chips').innerHTML = S.teams.map((t, i) =>
-    `<button type="button" class="chip${selected.has(t.id) ? ' on' : ''}" data-id="${t.id}" style="--c:${t.color};--ink:${inkFor(t.color)}" ${judging ? '' : 'tabindex="-1"'} aria-pressed="${selected.has(t.id)}" title="${judging ? (i + 1) + 'キーでも選べます' : ''}"><span class="dot"></span><span>${esc(t.name)}</span><span class="sc">${t.score}</span></button>`
-  ).join('');
+  const q = cur(), sm = stripMode();
+  $('#strip').classList.toggle('judging', sm !== 'none');
+  $('#stripHint').classList.toggle('hidden', sm === 'none');
+  $('#stripHint').textContent = STRIP_HINT[sm] || '';
+  const gains = q && q.mode === 'speed' && phase === 'revealed' ? speedGains(q, selected) : null;
+  $('#chips').innerHTML = S.teams.map((t, i) => {
+    const oi = order.indexOf(t.id);
+    const cls = ['chip'];
+    if (selected.has(t.id)) cls.push('on');
+    if (lockout.has(t.id)) cls.push('out');
+    if (buzzTeam === t.id || buzzWinner === t.id) cls.push('buzz');
+    const badge = oi >= 0 && q && q.mode === 'speed' ? `<span class="ord">${oi + 1}</span>` : '';
+    const g = gains && gains.has(t.id) ? `<span class="gain">+${gains.get(t.id)}</span>` : '';
+    return `<button type="button" class="${cls.join(' ')}" data-id="${t.id}" style="--c:${t.color};--ink:${inkFor(t.color)}" ${sm === 'none' ? 'tabindex="-1"' : ''} aria-pressed="${selected.has(t.id)}" title="${sm !== 'none' ? (i + 1) + 'キーでも選べます' : ''}">${badge}<span class="dot"></span><span>${esc(t.name)}</span><span class="sc">${t.score}</span>${g}</button>`;
+  }).join('');
+}
+function chipAction(id) {
+  const sm = stripMode();
+  if (sm === 'judge') toggleTeam(id);
+  else if (sm === 'order') {
+    const k = order.indexOf(id);
+    if (k >= 0) order.splice(k, 1); else { order.push(id); SFX.tick(); }
+    renderStrip();
+  } else if (sm === 'buzz' && !lockout.has(id)) buzzIn(id);
 }
 $('#chips').addEventListener('click', (e) => {
-  const c = e.target.closest('.chip'); if (!c || phase !== 'revealed') return;
-  toggleTeam(c.dataset.id);
+  const c = e.target.closest('.chip'); if (c) chipAction(c.dataset.id);
 });
 function toggleTeam(id) {
   if (selected.has(id)) selected.delete(id); else { selected.add(id); SFX.tick(); }
   renderStrip(); updateControls();
 }
 function updateControls() {
-  const rev = phase === 'revealed', ing = phase === 'revealing';
+  const rev = phase === 'revealed', ing = phase === 'revealing', bz = phase === 'buzzed';
   const q = cur();
-  $('#btnTimer').classList.toggle('hidden', rev || ing);
-  $('#btnReveal').classList.toggle('hidden', rev);
+  $('#btnTimer').classList.toggle('hidden', rev || ing || bz);
+  $('#btnReveal').classList.toggle('hidden', rev || bz);
   $('#btnReveal').disabled = ing;
+  $('#btnBuzzOk').classList.toggle('hidden', !bz);
+  $('#btnBuzzNg').classList.toggle('hidden', !bz);
+  $('#btnHint').classList.toggle('hidden', !q || !q.hints.length || rev || ing || hintShown >= q.hints.length);
+  if (q && q.hints.length) $('#btnHint').textContent = `💡 ヒント（${hintShown + 1}/${q.hints.length}）`;
+  $('#btnNominate').disabled = ing;
   $('#btnAward').classList.toggle('hidden', !rev);
-  $('#btnNext').classList.toggle('hidden', rev);
-  $('#btnPrev').disabled = S.pos <= 0 || ing;
+  $('#btnNext').classList.toggle('hidden', rev || bz);
+  $('#btnPrev').disabled = S.pos <= 0 || ing || bz;
   setMusicUI();
   $('#btnTimer').textContent = phase === 'counting' ? '⏸ ストップ' : phase === 'paused' ? '▶ 再開' : '⏱ カウント開始';
   if (q) {
-    const isLast = S.pos >= list().length - 1;
-    $('#btnAward').textContent = selected.size
-      ? `選んだチームに＋${q.pts}点${isLast ? '（得点ボードへ）' : 'して次へ'}`
-      : (isLast ? '得点ボードへ' : '次の問題へ');
+    const isLast = S.pos >= list().length - 1, tail = isLast ? '（得点ボードへ）' : 'して次へ';
+    let label = isLast ? '得点ボードへ' : '次の問題へ';
+    if (q.mode !== 'buzz' && selected.size) label = q.mode === 'speed' ? `早い順に得点を加算${tail}` : `選んだチームに＋${q.pts}点${tail}`;
+    $('#btnAward').textContent = label;
   }
 }
 function award() {
   const q = cur(); if (!q || phase !== 'revealed') return;
-  if (selected.size) {
-    if (awarded.has(q.id) && !confirm('この問題はすでに得点を加算しています。もう一度加算しますか？')) return;
-    S.teams.forEach((t) => { if (selected.has(t.id)) t.score += q.pts; });
-    awarded.add(q.id); save(); SFX.point(); renderStrip();
-    selected.forEach((id) => {
-      const chip = $(`#chips .chip[data-id="${id}"]`);
-      if (chip) { const f = document.createElement('span'); f.className = 'float'; f.textContent = `+${q.pts}`; chip.appendChild(f); }
-    });
-    selected.forEach((id) => { const c = $(`#chips .chip[data-id="${id}"]`); if (c) c.classList.remove('on'); });
-    setTimeout(() => showQuestion(S.pos + 1), 900);
-  } else {
-    showQuestion(S.pos + 1);
-  }
+  if (q.mode === 'buzz' || !selected.size) { showQuestion(S.pos + 1); return; }
+  if (awarded.has(q.id) && !confirm('この問題はすでに得点を加算しています。もう一度加算しますか？')) return;
+  const gains = q.mode === 'speed' ? speedGains(q, selected) : new Map([...selected].map((id) => [id, q.pts]));
+  S.teams.forEach((t) => { if (gains.has(t.id)) t.score += gains.get(t.id); });
+  awarded.add(q.id); save(); SFX.point();
+  selected = new Set(); renderStrip();
+  gains.forEach((v, id) => {
+    const chip = $(`#chips .chip[data-id="${id}"]`);
+    if (chip) { const f = document.createElement('span'); f.className = 'float'; f.textContent = `+${v}`; chip.appendChild(f); }
+  });
+  setTimeout(() => showQuestion(S.pos + 1), 1000);
 }
+
+/* 回答者の指名（ルーレット） */
+const used = new Set(); // 一度指名された人は、全員が当たるまで選ばれにくくする
+function pool(team, group) {
+  const gs = group === 'all' ? ['low', 'high', 'jh'] : [group];
+  const names = gs.flatMap((g) => (team.members[g] || []).map((n) => ({ team, name: n, g })));
+  return names.length ? names : [{ team, name: null, g: group }];
+}
+function pickFair(cands) {
+  const key = (c) => `${c.team.id}:${c.name}`;
+  let free = cands.filter((c) => !used.has(key(c)));
+  if (!free.length) { cands.forEach((c) => used.delete(key(c))); free = cands; }
+  const c = free[Math.floor(Math.random() * free.length)];
+  used.add(key(c)); return c;
+}
+function label(c) {
+  if (c.name) return `${esc(c.name)}<small>（${GROUPS[c.g] || ''}）</small>`;
+  return c.g === 'all' ? 'だれか1人' : `${GROUPS[c.g]}のだれか1人`;
+}
+function openNominate() {
+  const q = cur(); if (!q) return;
+  const def = q.target === 'all' ? 'all' : qGroup(q);
+  const opts = [['low', '低学年'], ['high', '高学年'], ['jh', '中学生'], ['all', '全員']];
+  splash(`<div class="nom-panel">
+    <h3>回答者を指名</h3>
+    <div class="seg" role="radiogroup" aria-label="対象">${opts.map(([k, v]) => `<button type="button" class="seg-b${k === def ? ' on' : ''}" data-g="${k}">${v}</button>`).join('')}</div>
+    <div class="nom-acts">
+      <button type="button" class="btn big gold" data-nom="each">各チームから1人ずつ</button>
+      <button type="button" class="btn big primary" data-nom="one">全体から1人だけ</button>
+    </div>
+    <button type="button" class="btn ghost" data-nom="close">閉じる</button>
+  </div>`);
+}
+$('#splash').addEventListener('click', (e) => {
+  const seg = e.target.closest('.seg-b');
+  if (seg) { $$('#splash .seg-b').forEach((b) => b.classList.toggle('on', b === seg)); return; }
+  const b = e.target.closest('[data-nom]'); if (!b) return;
+  if (b.dataset.nom === 'close') { hideSplash(); return; }
+  const g = ($('#splash .seg-b.on') || {}).dataset?.g || 'all';
+  runRoulette(g, b.dataset.nom === 'each');
+});
+function runRoulette(group, each) {
+  ac();
+  const teams = S.teams;
+  const finals = each ? teams.map((t) => pickFair(pool(t, group)))
+    : [pickFair(teams.flatMap((t) => pool(t, group)))];
+  const rows = (arr) => arr.map((c) => `<div class="rl-row" style="--c:${c.team.color};--ink:${inkFor(c.team.color)}"><span class="rl-team">${esc(c.team.name)}</span><span class="rl-name">${label(c)}</span></div>`).join('');
+  const all = each ? null : teams.flatMap((t) => pool(t, group));
+  let delay = 50, elapsed = 0;
+  const step = () => {
+    const tmp = each ? teams.map((t) => { const p = pool(t, group); return p[Math.floor(Math.random() * p.length)]; })
+      : [all[Math.floor(Math.random() * all.length)]];
+    splash(`<div class="roulette"><p class="rl-title">だれかな…？</p>${rows(tmp)}</div>`);
+    SFX.tick();
+    elapsed += delay; delay = Math.min(260, delay * 1.12);
+    if (elapsed < 2200) setTimeout(step, delay);
+    else setTimeout(() => {
+      splash(`<div class="roulette done"><p class="rl-title">${each ? '各チームの回答者' : 'あなたです！'}</p>${rows(finals)}<p class="rl-tap">タップで閉じる</p></div>`);
+      SFX.pinpon();
+      const nm = $('#nominee');
+      nm.innerHTML = `<span class="nm-lead">🎯 回答者</span>` + finals.map((c) => `<span class="nm-chip" style="--c:${c.team.color};--ink:${inkFor(c.team.color)}">${esc(c.team.name)}：${label(c)}</span>`).join('');
+      nm.classList.remove('hidden');
+    }, 250);
+  };
+  step();
+}
+$('#btnNominate').addEventListener('click', openNominate);
+$('#btnHint').addEventListener('click', showHint);
+$('#btnBuzzOk').addEventListener('click', () => { ac(); buzzJudge(true); });
+$('#btnBuzzNg').addEventListener('click', () => { ac(); buzzJudge(false); });
+
 $('#btnTimer').addEventListener('click', toggleTimer);
 $('#btnMusic').addEventListener('click', () => {
   const q = cur(); if (!q || !q.audio) return;
@@ -605,11 +844,18 @@ document.addEventListener('keydown', (e) => {
   const tag = e.target.tagName;
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
   if ((e.key === ' ' || e.key === 'Enter') && tag === 'BUTTON') return; // ボタン自体の操作を優先
+  if (phase === 'buzzed') {
+    if (e.key === 'o' || e.key === 'Enter') { e.preventDefault(); buzzJudge(true); }
+    else if (e.key === 'x') buzzJudge(false);
+    return;
+  }
   if (e.key === ' ') { e.preventDefault(); toggleTimer(); }
   else if (e.key === 'Enter') { e.preventDefault(); if (phase === 'revealed') award(); else { ac(); reveal(); } }
   else if (e.key === 'ArrowRight' && phase !== 'revealing') showQuestion(S.pos + 1);
   else if (e.key === 'ArrowLeft' && phase !== 'revealing') showQuestion(S.pos - 1);
-  else if (/^[1-8]$/.test(e.key) && phase === 'revealed') { const t = S.teams[+e.key - 1]; if (t) toggleTeam(t.id); }
+  else if (e.key === 'h') showHint();
+  else if (e.key === 'n') openNominate();
+  else if (/^[1-8]$/.test(e.key)) { const t = S.teams[+e.key - 1]; if (t) chipAction(t.id); }
 });
 
 /* ---------- 得点ボード ---------- */
@@ -690,7 +936,7 @@ function renderQList() {
       <span class="qi-no">${no}</span>
       <span class="tag ${q.type}">${TYPE_LABEL[q.type]}</span>
       <span class="qi-lv">${'★'.repeat(q.level)}</span>
-      <span class="qi-text"><span class="cat">${esc(q.cat)}</span>${q.audio ? '<span class="tag audio" title="音源あり">♪ 音源あり</span> ' : ''}${esc(plain(q.text))}${q.check ? '<span class="warn">要確認</span>' : ''}${q.memo ? `<span class="memo">${esc(q.memo)}</span>` : ''}</span>
+      <span class="qi-text"><span class="cat">${esc(q.cat)}</span>${q.audio ? '<span class="tag audio" title="音源あり">♪ 音源あり</span> ' : ''}${q.mode !== 'normal' ? `<span class="tag mode-${q.mode}">${MODE_LABEL[q.mode]}</span> ` : ''}${q.hints.length ? '<span class="tag hint">ヒント</span> ' : ''}${esc(plain(q.text))}${q.check ? '<span class="warn">要確認</span>' : ''}${q.memo ? `<span class="memo">${esc(q.memo)}</span>` : ''}</span>
       <span class="qi-pts">${q.pts}点</span>
       <span class="qi-act">
         <button type="button" class="btn sm" data-act="up" aria-label="上へ" ${i === 0 ? 'disabled' : ''}>↑</button>
@@ -826,6 +1072,7 @@ function openEditor(i) {
   $$('input[name=fOx]').forEach((r) => { r.checked = r.value === (q.type === 'ox' ? q.answer : 'o'); });
   $('#fFree').value = q.type === 'free' ? q.answer : '';
   $('#fMemo').value = q.memo; $('#fAStart').value = q.aStart; $('#fALen').value = q.aLen;
+  $('#fMode').value = q.mode; $('#fTarget').value = q.target; $('#fHints').value = q.hints.join('\n');
   edAudio = null; edRemove = false; edExisting = q.audio; showAudioName();
   $('#catList').innerHTML = [...new Set(S.questions.map((x) => x.cat))].map((c) => `<option value="${esc(c)}">`).join('');
   $('#fErr').textContent = '';
@@ -845,6 +1092,7 @@ $('#editForm').addEventListener('submit', async (e) => {
     pts: Math.max(0, parseInt($('#fPts').value, 10) || 0), explain: $('#fExplain').value.trim(),
     enabled: $('#fEnabled').checked, check: $('#fCheck').checked, choices: [],
     memo: $('#fMemo').value.trim(), aStart: $('#fAStart').value, aLen: $('#fALen').value,
+    mode: $('#fMode').value, target: $('#fTarget').value, hints: $('#fHints').value.split('\n'),
     audio: edRemove ? null : edExisting,
   };
   if (type === 'choice') {
@@ -885,9 +1133,15 @@ function renderTeams() {
       <input type="text" value="${esc(t.name)}" data-f="name" aria-label="チーム名">
       <input type="number" value="${t.score}" data-f="score" aria-label="得点">
       <button type="button" class="btn sm" data-act="del" ${S.teams.length <= 1 ? 'disabled' : ''}>削除</button>
+      <div class="members">
+        ${Object.entries(GROUPS).map(([g, gl]) => `<label class="field">${gl}のメンバー<input type="text" data-m="${g}" value="${esc(t.members[g].join('、'))}" placeholder="例：たろう、はなこ"></label>`).join('')}
+      </div>
     </div>`).join('');
 }
 $('#teamList').addEventListener('input', (e) => {
+  if (e.target.dataset.m) {
+    S.teams[+e.target.closest('.team-row').dataset.i].members[e.target.dataset.m] = names(e.target.value); save(); return;
+  }
   const f = e.target.dataset.f; if (!f) return;
   const t = S.teams[+e.target.closest('.team-row').dataset.i];
   t[f] = f === 'score' ? (parseInt(e.target.value, 10) || 0) : e.target.value;
@@ -915,11 +1169,14 @@ function renderSettings() {
   $('#setTitle').value = S.settings.title; $('#setSub').value = S.settings.subtitle;
   $('#setTimer').value = S.settings.timer; $('#setSound').checked = S.settings.sound;
   $('#setBgm').checked = S.settings.bgm; $('#setAutoMusic').checked = S.settings.autoMusic;
+  $('#setRates').value = S.settings.speedRates; $('#setPenalty').value = S.settings.penalty;
 }
 $('#setTitle').addEventListener('input', (e) => { S.settings.title = e.target.value; save(); applyTitle(); });
 $('#setSub').addEventListener('input', (e) => { S.settings.subtitle = e.target.value; save(); });
 $('#setTimer').addEventListener('change', (e) => { S.settings.timer = Math.min(120, Math.max(3, parseInt(e.target.value, 10) || 15)); e.target.value = S.settings.timer; save(); });
 $('#setSound').addEventListener('change', (e) => { S.settings.sound = e.target.checked; save(); syncSound(); });
+$('#setRates').addEventListener('change', (e) => { S.settings.speedRates = String(e.target.value); S.settings.speedRates = rates().join(','); e.target.value = S.settings.speedRates; save(); });
+$('#setPenalty').addEventListener('change', (e) => { S.settings.penalty = Math.max(0, parseInt(e.target.value, 10) || 0); e.target.value = S.settings.penalty; save(); });
 $('#setBgm').addEventListener('change', (e) => { S.settings.bgm = e.target.checked; save(); });
 $('#setAutoMusic').addEventListener('change', (e) => { S.settings.autoMusic = e.target.checked; save(); });
 $('#btnRewind').addEventListener('click', () => { S.pos = 0; awarded.clear(); save(); toast('第1問にもどしました'); });
